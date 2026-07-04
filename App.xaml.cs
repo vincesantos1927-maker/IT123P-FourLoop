@@ -1,23 +1,22 @@
 ﻿using jeo_ano_ba.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace jeo_ano_ba
 {
     public partial class App : Application
     {
-        private readonly GameDatabaseService _dbService;
+        private readonly StartPage _startPage;
 
-        public App(GameDatabaseService dbService)
+        public App(StartPage startPage)
         {
             InitializeComponent();
-            _dbService = dbService;
+            _startPage = startPage;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
             try
             {
-                return new Window(new NavigationPage(new MainPage(_dbService)));
+                return new Window(new NavigationPage(_startPage));
             }
             catch (Exception ex)
             {
@@ -31,7 +30,6 @@ namespace jeo_ano_ba
                 };
                 return new Window(MainPage);
             }
-
         }
     }
 }

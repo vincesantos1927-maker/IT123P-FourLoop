@@ -162,6 +162,49 @@ public class GameDatabaseService
         return game.Id;
     }
 
+    /// <summary>
+    /// Builds a game from categories/questions the player typed themselves.
+    /// Point values (200, 400, 600, 800, 1000...) are always auto-assigned —
+    /// the player never sets scoring directly.
+    /// </summary>
+    public async Task<int> BuildPlayerAuthoredGameAsync(
+        string customTitle,
+        List<CustomCategoryInput> categories,
+        int startingPointValue = 200,
+        int pointIncrement = 200)
+    {
+        await InitAsync();
+
+        var game = new GameDb { Name = string.IsNullOrWhiteSpace(customTitle) ? "Custom Game" : customTitle };
+        await _database!.InsertAsync(game);
+
+        foreach (var catInput in categories)
+        {
+            if (string.IsNullOrWhiteSpace(catInput.CategoryName) || catInput.Clues.Count == 0) continue;
+
+            var newCategory = new CategoryDb { Name = catInput.CategoryName.Trim().ToUpper(), GameId = game.Id };
+            await _database.InsertAsync(newCategory);
+
+            for (int i = 0; i < catInput.Clues.Count; i++)
+            {
+                var (question, answer) = catInput.Clues[i];
+                if (string.IsNullOrWhiteSpace(question) || string.IsNullOrWhiteSpace(answer)) continue;
+
+                var newClue = new ClueDb
+                {
+                    CategoryId = newCategory.Id,
+                    Question = question.Trim(),
+                    Answer = answer.Trim(),
+                    PointValue = startingPointValue + (i * pointIncrement),
+                    IsCompleted = false
+                };
+                await _database.InsertAsync(newClue);
+            }
+        }
+
+        return game.Id;
+    }
+
     public async Task<List<GameDb>> GetAllGamesAsync()
     {
         await InitAsync();

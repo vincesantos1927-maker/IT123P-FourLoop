@@ -59,10 +59,17 @@
                 <VerticalStackLayout Spacing="15" VerticalOptions="Center">
                     <Label x:Name="ModalClueLabel" Text="Clue Text" TextColor="White" FontSize="18" HorizontalTextAlignment="Center" LineBreakMode="WordWrap"/>
 
-                    <Entry x:Name="UserAnswerEntry" Placeholder="Type your absolute response here..." BackgroundColor="White" TextColor="Black" HorizontalTextAlignment="Center"/>
+                    <Label x:Name="ModalAnswerLabel" Text="Answer Text" TextColor="#FFCC00" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" IsVisible="False"/>
 
-                    <Button Text="SUBMIT EVALUATION" Clicked="OnSubmitResponseClicked" BackgroundColor="#FFCC00" TextColor="Black" FontAttributes="Bold"/>
-                    <Button Text="CANCEL/PASS" Clicked="OnCancelModalClicked" BackgroundColor="Red" TextColor="White"/>
+                    <HorizontalStackLayout x:Name="PreAnswerButtonRow" Spacing="15" HorizontalOptions="Center">
+                        <Button Text="SHOW ANSWER" Clicked="OnShowAnswerClicked" BackgroundColor="#FFCC00" TextColor="Black" FontAttributes="Bold"/>
+                        <Button Text="PASS" Clicked="OnPassClicked" BackgroundColor="Red" TextColor="White"/>
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout x:Name="PostAnswerButtonRow" Spacing="15" HorizontalOptions="Center" IsVisible="False">
+                        <Button Text="CORRECT" Clicked="OnCorrectClicked" BackgroundColor="Green" TextColor="White" FontAttributes="Bold"/>
+                        <Button Text="INCORRECT" Clicked="OnIncorrectClicked" BackgroundColor="Red" TextColor="White" FontAttributes="Bold"/>
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
         </Grid>
