@@ -1,10 +1,15 @@
-﻿namespace jeo_ano_ba
+﻿using jeo_ano_ba.Views;
+
+namespace jeo_ano_ba;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+
+        Routing.RegisterRoute(nameof(SavedGamesPage), typeof(SavedGamesPage));
+
+        Routing.RegisterRoute(nameof(NewBoardPage), typeof(NewBoardPage));
     }
 }

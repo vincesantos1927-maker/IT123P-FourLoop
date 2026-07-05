@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="jeo_ano_ba.Views.MainMenuPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False">
+
+    <Grid>
+
+        <Image
+            Source="bg3.png"
+            Aspect="AspectFill"
+            HorizontalOptions="Fill"
+            VerticalOptions="Fill"/>
+        
+        <!-- Main Content -->
+
+        <Grid
+            Padding="28,50,28,35">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.8*" />
+                <RowDefinition Height="2.3*" />
+                <RowDefinition Height="1.2*" />
+                <RowDefinition Height="2.7*" />
+            </Grid.RowDefinitions>
+
+            <!-- ========================= -->
+            <!-- Top Bar -->
+            <!-- ========================= -->
+
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="*,Auto">
+
+                <!-- Music Button -->
+
+                <Border
+                    x:Name="MusicButton"
+                    Grid.Column="1"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    BackgroundColor="#255A96"
+                    Stroke="#FFD700"
+                    StrokeThickness="0.5">
+
+                    <Border.StrokeShape>
+
+                        <RoundRectangle CornerRadius="26"/>
+
+                    </Border.StrokeShape>
+
+                    <Border.Shadow>
+
+                        <Shadow
+                            Brush="Black"
+                            Radius="18"
+                            Offset="0,4"
+                            Opacity="0.35"/>
+
+                    </Border.Shadow>
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="MusicTapped"/>
+
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        x:Name="MusicIcon"
+                        Text="🔊"
+                        FontSize="22"
+                        TextColor="#FFD700"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"/>
+
+                </Border>
+
+            </Grid>
+
+            <!-- ========================= -->
+            <!-- Logo -->
+            <!-- ========================= -->
+
+            <Grid
+                Grid.Row="1"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <VerticalStackLayout
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Spacing="8">
+
+                    <Image
+                        Source="logo.png"
+                        WidthRequest="460"
+                        HeightRequest="250"
+                        Aspect="AspectFit"
+                        HorizontalOptions="Center">
+
+                        <Image.Shadow>
+                            <Shadow
+                                Brush="#FFD700"
+                                Radius="30"
+                                Offset="0,0"
+                                Opacity="0.20"/>
+                        </Image.Shadow>
+                    </Image>
+
+
+                    <Label
+                        Text="BOARD"
+                        FontSize="24"
+                        FontAttributes="Bold"
+                        CharacterSpacing="8"
+                        HorizontalOptions="Center"
+                        TextColor="#D8D8D8"
+                        Margin="0,-60,0,0"/>
+
+                    <Border
+                        WidthRequest="120"
+                        HeightRequest="2"
+                        HorizontalOptions="Center"
+                        StrokeThickness="0">
+
+                        <Border.Background>
+
+                            <LinearGradientBrush
+                                StartPoint="0,0"
+                                EndPoint="1,0">
+
+                                <GradientStop
+                                    Color="Transparent"
+                                    Offset="0.0"/>
+
+                                <GradientStop
+                                    Color="#FFD700"
+                                    Offset="0.25"/>
+
+                                <GradientStop
+                                    Color="#FFD700"
+                                    Offset="0.75"/>
+
+                                <GradientStop
+                                    Color="Transparent"
+                                    Offset="1.0"/>
+
+                            </LinearGradientBrush>
+
+                        </Border.Background>
+
+                    </Border>
+
+                    <Label
+                        Text="PARTY TRIVIA GAME"
+                        FontSize="14"
+                        CharacterSpacing="4"
+                        HorizontalOptions="Center"
+                        TextColor="#FFD700"
+                        Margin="0,8,0,0"/>
+
+                </VerticalStackLayout>
+
+            </Grid>
+
+            <!-- ========================= -->
+            <!-- Menu Buttons -->
+            <!-- ========================= -->
+
+            <VerticalStackLayout
+                Grid.Row="3"
+                Margin="0,-40,0,0"
+                VerticalOptions="End"
+                Spacing="18">
+
+                <!-- Custom Game -->
+
+                <Border
+                    x:Name="CustomGameButton"
+                    BackgroundColor="#882F67A8"
+                    Stroke="#FFD700"
+                    StrokeThickness="0.5"
+                    Padding="20">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20"/>
+                    </Border.StrokeShape>
+
+                    <Border.Shadow>
+                        <Shadow
+                            Brush="Black"
+                            Radius="18"
+                            Offset="0,8"
+                            Opacity="0.30"/>
+                    </Border.Shadow>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="CustomGameTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <Label
+                            Text="Custom Game"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center"
+                            HorizontalOptions="Center"
+                            TextColor="White"/>
+
+                        <Label
+                            Grid.Column="1"
+                            Text="❯"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center"
+                            HorizontalOptions="Center"
+                            TextColor="#FFD700"/>
+
+                    </Grid>
+
+                </Border>
+
+                <!-- Preset Categories -->
+
+                <Border
+                    x:Name="GeneralKnowledgeButton"
+                    BackgroundColor="#FFD700"
+                    Stroke="#FFE082"
+                    StrokeThickness="0.5"
+                    Padding="20">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="22"/>
+                    </Border.StrokeShape>
+
+                    <Border.Shadow>
+                        <Shadow
+                            Brush="#8A6A00"
+                            Radius="18"
+                            Offset="0,8"
+                            Opacity="0.30"/>
+                    </Border.Shadow>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="GeneralKnowledgeTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <Label
+                            Text="Preset Categories"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center"
+                            HorizontalOptions="Center"
+                            TextColor="#14253F"/>
+
+                        <Label
+                            Grid.Column="1"
+                            Text="❯"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center"
+                            HorizontalOptions="Center"
+                            TextColor="#14253F"/>
+
+                    </Grid>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

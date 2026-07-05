@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="jeo_ano_ba.Views.NewBoardPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#07182F">
+
+    <Grid>
+
+        <!-- Background -->
+
+        <Image
+            Source="bg3.png"
+            Aspect="AspectFill"
+            InputTransparent="True"/>
+
+        <!-- Page Layout -->
+
+        <Grid
+            Padding="18,24,18,20"
+            RowDefinitions="Auto,*,Auto">
+
+            <!-- ================================= -->
+            <!-- HEADER -->
+            <!-- ================================= -->
+
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="Auto,*,Auto"
+                Margin="0,10,0,16">
+
+                <!-- Close Button -->
+
+                <Border
+                    x:Name="CloseButton"
+                    WidthRequest="46"
+                    HeightRequest="46"
+                    BackgroundColor="#234A78"
+                    StrokeThickness="0">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="23"/>
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="CloseTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="✕"
+                        FontSize="20"
+                        TextColor="#FFD700"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"/>
+
+                </Border>
+
+                <!-- Title -->
+
+                <Label
+                    Grid.Column="1"
+                    Margin="16,0,0,0"
+                    VerticalOptions="Center"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    Text="New Board"
+                    TextColor="White"/>
+
+                <!-- Counter -->
+
+                <Label
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Text="0/30 filled"
+                    TextColor="#FFD700"/>
+
+            </Grid>
+
+            <!-- ================================= -->
+            <!-- BOARD -->
+            <!-- ================================= -->
+
+            <!-- BOARD -->
+
+            <Grid Grid.Row="1">
+
+                <!-- Horizontal Scroll -->
+
+                <ScrollView Orientation="Horizontal">
+
+                    <!-- Vertical Scroll -->
+
+                    <ScrollView Orientation="Vertical">
+
+                        <Grid
+                            x:Name="BoardGrid"
+                            WidthRequest="1260"
+                            HeightRequest="900"/>
+
+                    </ScrollView>
+
+                </ScrollView>
+
+            </Grid>
+
+            <!-- ================================= -->
+            <!-- FOOTER -->
+            <!-- ================================= -->
+
+            <Grid
+                Grid.Row="2"
+                ColumnDefinitions="*,20,*"
+                Margin="0,18,0,0">
+
+                <!-- Save Only -->
+
+                <Border
+                    x:Name="SaveOnlyButton"
+                    Grid.Column="0"
+                    BackgroundColor="#2F5D95"
+                    Stroke="#FFD700"
+                    StrokeThickness="0.5"
+                    Padding="18">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20"/>
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="SaveOnlyTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="Save Only"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        TextColor="White"/>
+
+                </Border>
+
+                <!-- Save & Start -->
+
+                <Border
+                    x:Name="SaveStartButton"
+                    Grid.Column="2"
+                    BackgroundColor="#FFD700"
+                    StrokeThickness="0"
+                    Padding="18">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20"/>
+                    </Border.StrokeShape>
+
+                    <Border.Shadow>
+
+                        <Shadow
+                            Brush="#FFD700"
+                            Radius="18"
+                            Offset="0,6"
+                            Opacity="0.35"/>
+
+                    </Border.Shadow>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="SaveStartTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="Save &amp; Start"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        TextColor="#07182F"/>
+
+                </Border>
+
+            </Grid>
+
+        </Grid>
+        <!-- ====================================== -->
+        <!-- QUESTION POPUP -->
+        <!-- ====================================== -->
+
+        <Grid
+            x:Name="PopupOverlay"
+            IsVisible="False"
+            BackgroundColor="#80000000"
+            ZIndex="100">
+
+            <VerticalStackLayout
+                VerticalOptions="End">
+
+                <Border
+                    x:Name="PopupPanel"
+                    BackgroundColor="#162D59"
+                    Padding="22"
+                    StrokeThickness="0">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="32,32,0,0"/>
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="14">
+
+                        <!-- Header -->
+
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <Label
+                                x:Name="PopupValueLabel"
+                                Text="$100"
+                                FontSize="28"
+                                FontAttributes="Bold"
+                                TextColor="#FFD700"/>
+
+                            <Label
+                                Grid.Column="1"
+                                Text="✕"
+                                FontSize="18"
+                                TextColor="#9AA7BD"
+                                Margin="0,4,0,0"
+                                HorizontalOptions="End"
+                                VerticalOptions="Start">
+
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                Tapped="ClosePopupTapped"/>
+                                </Label.GestureRecognizers>
+
+                            </Label>
+
+                        </Grid>
+
+                        <!-- QUESTION -->
+
+                        <Label
+                            Text="QUESTION"
+                            FontAttributes="Bold"
+                            FontSize="16"
+                            TextColor="#D7B53C"/>
+
+                        <Border
+                            BackgroundColor="#355692"
+                            Stroke="#4D6799"
+                            StrokeThickness="1"
+                            Padding="10">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="18"/>
+                            </Border.StrokeShape>
+
+                            <Editor
+                                x:Name="QuestionEditor"
+                                BackgroundColor="Transparent"
+                                HeightRequest="110"
+                                Placeholder="Enter the question clue..."
+                                PlaceholderColor="#7E8DA9"
+                                TextColor="White"
+                                AutoSize="TextChanges"/>
+                        </Border>
+
+                        <!-- ANSWER -->
+
+                        <Label
+                            Text="ANSWER"
+                            FontAttributes="Bold"
+                            FontSize="16"
+                            TextColor="#D7B53C"/>
+
+                        <Border
+                            BackgroundColor="#355692"
+                            Stroke="#4D6799"
+                            StrokeThickness="1"
+                            Padding="10,4">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="18"/>
+                            </Border.StrokeShape>
+
+                            <Entry
+                                x:Name="AnswerEntry"
+                                BackgroundColor="Transparent"
+                                Placeholder="Enter the correct answer..."
+                                PlaceholderColor="#7E8DA9"
+                                TextColor="White"/>
+                        </Border>
+
+                        <!-- Buttons -->
+
+                        <Grid
+                            ColumnDefinitions="*,18,*"
+                            Margin="0,10,0,0">
+
+                            <!-- Cancel -->
+
+                            <Border
+                                Grid.Column="0"
+                                BackgroundColor="#2E5D95"
+                                Stroke="#D7B53C"
+                                StrokeThickness="0.5">
+
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18"/>
+                                </Border.StrokeShape>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Tapped="ClosePopupTapped"/>
+                                </Border.GestureRecognizers>
+
+                                <Label
+                                    Text="Cancel"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    Padding="18"
+                                    TextColor="White"/>
+
+                            </Border>
+
+                            <!-- Save -->
+
+                            <Border
+                                Grid.Column="2"
+                                BackgroundColor="#FFD21F"
+                                StrokeThickness="0">
+
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18"/>
+                                </Border.StrokeShape>
+
+                                <Border.Shadow>
+                                    <Shadow
+                                        Brush="#FFD21F"
+                                        Radius="18"
+                                        Offset="0,5"
+                                        Opacity="0.35"/>
+                                </Border.Shadow>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Tapped="SaveQuestionTapped"/>
+                                </Border.GestureRecognizers>
+
+                                <Label
+                                    Text="Save"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    Padding="18"
+                                    TextColor="#07182F"/>
+
+                            </Border>
+
+                        </Grid>
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+        </Grid>
+    </Grid>
+
+</ContentPage>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="jeo_ano_ba.Views.SavedGamesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#07182F">
+
+    <Grid>
+
+        <!-- Background -->
+
+        <Image
+            Source="bg3.png"
+            Aspect="AspectFill"
+            InputTransparent="True" />
+
+        <!-- Main Content -->
+
+        <Grid Padding="24,40,24,30">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ================= HEADER ================= -->
+
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="Auto,*"
+                VerticalOptions="Center">
+
+                <!-- Close Button -->
+
+                <Border
+                    x:Name="CloseButton"
+                    WidthRequest="46"
+                    HeightRequest="46"
+                    BackgroundColor="#234A78"
+                    StrokeThickness="0">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="23"/>
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Tapped="CloseTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="✕"
+                        FontSize="20"
+                        TextColor="#FFD700"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"/>
+
+                </Border>
+
+                <!-- Title -->
+
+                <Label
+                    Grid.Column="1"
+                    Margin="14,0,0,0"
+                    Text="Saved Games"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center"
+                    TextColor="White"/>
+
+            </Grid>
+
+            <!-- ================= EMPTY STATE ================= -->
+
+            <Grid Grid.Row="1">
+
+                <VerticalStackLayout
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Spacing="18">
+
+                    <!-- Trophy Circle -->
+
+                    <Border
+                        WidthRequest="120"
+                        HeightRequest="120"
+                        BackgroundColor="#234A78"
+                        StrokeThickness="0">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="60"/>
+                        </Border.StrokeShape>
+
+                        <Label
+                            Text="🏆"
+                            FontSize="52"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"/>
+
+                    </Border>
+
+                    <!-- Main Text -->
+
+                    <Label
+                        Text="No saved games yet"
+                        FontSize="26"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"
+                        TextColor="#AEB8C6"/>
+
+                    <!-- Subtitle -->
+
+                    <Label
+                        Text="Tap + to create your first board"
+                        FontSize="16"
+                        HorizontalTextAlignment="Center"
+                        TextColor="#6E7E95"/>
+
+                </VerticalStackLayout>
+
+            </Grid>
+
+            <!-- ================= FLOATING ACTION BUTTON ================= -->
+
+            <Border
+                x:Name="CreateButton"
+                WidthRequest="70"
+                HeightRequest="70"
+                BackgroundColor="#FFD700"
+                StrokeThickness="0"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="0,0,6,6"
+                Grid.RowSpan="2">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="35"/>
+                </Border.StrokeShape>
+
+                <Border.Shadow>
+                    <Shadow
+                        Brush="#FFD700"
+                        Radius="22"
+                        Offset="0,8"
+                        Opacity="0.45"/>
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer
+                        Tapped="CreateTapped"/>
+                </Border.GestureRecognizers>
+
+                <Label
+                    Text="+"
+                    FontSize="36"
+                    TextColor="#07182F"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"/>
+
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
