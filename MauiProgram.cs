@@ -28,6 +28,11 @@ namespace jeo_ano_ba
             // ====================================================================
             // 2. Registers the database service as a single persistent instance
             builder.Services.AddSingleton<GameDatabaseService>();
+            builder.Services.AddSingleton<GameSessionService>();
+            builder.Services.AddSingleton<GameTimerService>();
+            builder.Services.AddSingleton<PlayerSetupService>();
+            builder.Services.AddSingleton<CustomBoardDraftService>();
+            builder.Services.AddSingleton<BgmService>();
 
 
             // 3. Registers StartPage — this is now the app's entry point (App.xaml.cs

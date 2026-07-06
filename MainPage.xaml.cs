@@ -11,15 +11,20 @@ public partial class MainPage : ContentPage
     private readonly List<Button> _playerButtons = new();
     private int? _activePlayerIndex = null;
     private int? _autoLoadGameId;
+    private readonly GameTimerService _timerService = new();
+    private readonly int _timerSeconds;
 
     private ClueDb? _currentEvaluatingClue;
 
-    public MainPage(GameDatabaseService dbService, List<Player> players, int? autoLoadGameId = null)
+    public MainPage(GameDatabaseService dbService, List<Player> players, int? autoLoadGameId = null, int timerSeconds = 30)
     {
         InitializeComponent();
         _dbService = dbService;
         _players = players.Count > 0 ? players : new List<Player> { new Player { Name = "Player 1" } };
         _autoLoadGameId = autoLoadGameId;
+        _timerSeconds = timerSeconds;
+        _timerService.Tick += OnTimerTick;
+        _timerService.TimedOut += OnTimerTimedOut;
 
         WrapContentWithBuzzerBar();
     }
@@ -82,19 +87,32 @@ public partial class MainPage : ContentPage
         return bar;
     }
 
-    private void OnPlayerBuzzed(int index)
+    private async void OnPlayerBuzzed(int index)
     {
         // Only the first player to buzz in on a given clue gets locked in.
         if (_currentEvaluatingClue == null) return;
         if (_activePlayerIndex != null) return;
+        _timerService.Stop();
+        TimerLabel.IsVisible = false;
 
         _activePlayerIndex = index;
 
-        for (int i = 0; i < _playerButtons.Count; i++)
+        // Force UI updates to run immediately on the MainThread BEFORE the timer awaits
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            _playerButtons[i].BackgroundColor = i == index ? Color.FromArgb("#FF9800") : Color.FromArgb("#333333");
-            _playerButtons[i].IsEnabled = (i == index);
-        }
+            PreAnswerButtonRow.IsVisible = true;
+            TimerLabel.IsVisible = true;
+            TimerLabel.Text = $"{_timerSeconds}s";
+
+            for (int i = 0; i < _playerButtons.Count; i++)
+            {
+                _playerButtons[i].BackgroundColor = i == index ? Color.FromArgb("#FF9800") : Color.FromArgb("#333333");
+                _playerButtons[i].IsEnabled = (i == index);
+            }
+        });
+
+        // Now start the timer safely without blocking the button color change
+        await _timerService.StartAsync(_timerSeconds);
     }
 
     private void ResetBuzzers()
@@ -145,7 +163,7 @@ public partial class MainPage : ContentPage
 
             var popup = new CategorySelectorPopup(categories);
             var result = await this.ShowPopupAsync(popup);
-            if (result is List<string> selected && selected.Count == 5)
+            if (result is List<string> selected && selected.Count == 6)
             {
                 var gameId = await _dbService.BuildCustomGameFromCategoriesAsync(title, selected);
                 await RefreshGameListMenuAsync();
@@ -177,9 +195,11 @@ public partial class MainPage : ContentPage
             ModalClueLabel.Text = clue.Question;
 
             ModalAnswerLabel.IsVisible = false;
-            PreAnswerButtonRow.IsVisible = true;
+            PreAnswerButtonRow.IsVisible = false;
             PostAnswerButtonRow.IsVisible = false;
-
+            TimerLabel.IsVisible = false;
+            TimerLabel.Text = "";
+            _timerService.Stop();
             EvaluationModal.IsVisible = true;
             ResetBuzzers(); // fresh clue = fresh buzz-in race
         }
@@ -188,6 +208,10 @@ public partial class MainPage : ContentPage
     private void OnShowAnswerClicked(object sender, EventArgs e)
     {
         if (_currentEvaluatingClue == null) return;
+
+        // Force stop the timer immediately when showing the answer
+        _timerService.Stop();
+        TimerLabel.IsVisible = false;
 
         ModalAnswerLabel.Text = _currentEvaluatingClue.Answer;
         ModalAnswerLabel.IsVisible = true;
@@ -198,8 +222,10 @@ public partial class MainPage : ContentPage
     private void OnPassClicked(object sender, EventArgs e)
     {
         // Closes the clue without scoring anyone — same as the old Cancel button.
-        EvaluationModal.IsVisible = false;
-        ResetBuzzers();
+        _timerService.Stop();
+        _activePlayerIndex = null; // Clear old player index memory before opening modal
+        ResetBuzzers();            // Reset button states first
+        EvaluationModal.IsVisible = true;
     }
     private async void OnCorrectClicked(object sender, EventArgs e)
     {
@@ -230,6 +256,7 @@ public partial class MainPage : ContentPage
 
         _currentEvaluatingClue.IsCompleted = true;
         await _dbService.UpdateClueStateAsync(_currentEvaluatingClue);
+        _currentEvaluatingClue = null;
 
         EvaluationModal.IsVisible = false;
         ResetBuzzers(); // also refreshes each button's displayed score
@@ -238,5 +265,32 @@ public partial class MainPage : ContentPage
         var items = BindableLayout.GetItemsSource(ProxyBoardGrid);
         BindableLayout.SetItemsSource(ProxyBoardGrid, null);
         BindableLayout.SetItemsSource(ProxyBoardGrid, items);
+    }
+    private async void OnEndGameClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopToRootAsync();
+    }
+    private void OnTimerTick(int seconds)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            TimerLabel.Text = $"{seconds}s";
+        });
+    }
+
+    private void OnTimerTimedOut()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (_currentEvaluatingClue == null || _activePlayerIndex == null)
+                return;
+
+            ModalAnswerLabel.Text = _currentEvaluatingClue.Answer;
+            ModalAnswerLabel.IsVisible = true;
+
+            TimerLabel.IsVisible = false;
+            PreAnswerButtonRow.IsVisible = false;
+            PostAnswerButtonRow.IsVisible = true;
+        });
     }
 }

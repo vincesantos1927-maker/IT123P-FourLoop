@@ -8,16 +8,20 @@ public class CategorySelectorPopup : Popup
 {
     // Use a list of objects to track selection
     private readonly List<CategoryDb> _selectedCategories = new();
+    //stores the text of the selected categories to be used in the game
     public List<string>? FinalSelection { get; private set; }
 
+    // ung label na "Selected: " sa taas
     private readonly Label _countTrackerLabel;
+    //button that the user clicks to finish creating the game board
     private readonly Button _generateButton;
 
+    // pang popup UI layout, the available categories, action buttons
     public CategorySelectorPopup(List<CategoryDb> availableCategories)
     {
         _countTrackerLabel = new Label
         {
-            Text = "Selected: 0 / 5",
+            Text = "Selected: 0 / 6",
             FontSize = 14,
             TextColor = Colors.White,
             HorizontalOptions = LayoutOptions.Center
@@ -87,7 +91,7 @@ public class CategorySelectorPopup : Popup
 
         var titleLabel = new Label
         {
-            Text = "SELECT 5 CATEGORIES",
+            Text = "SELECT 6 CATEGORIES",
             FontSize = 18,
             FontAttributes = FontAttributes.Bold,
             TextColor = Color.FromArgb("#FF9800"),
@@ -112,7 +116,7 @@ public class CategorySelectorPopup : Popup
             Content = mainGrid
         };
     }
-
+    // categories checkbox validation, if the user selects more than 6 categories, the checkbox will be unchecked and the user will be notified
     private void OnCategoryCheckedChanged(object? sender, CheckedChangedEventArgs e)
     {
         if (sender is CheckBox checkBox && checkBox.BindingContext is CategoryDb category)
@@ -121,24 +125,28 @@ public class CategorySelectorPopup : Popup
             category.IsSelected = e.Value;
 
             // Maintain your selection list
-            if (e.Value)
+            if (_selectedCategories.Count >= 6 && !_selectedCategories.Contains(category))
             {
-                if (!_selectedCategories.Contains(category)) _selectedCategories.Add(category);
+                checkBox.IsChecked = false;
+                return;
             }
+
+            if (!_selectedCategories.Contains(category))
+                _selectedCategories.Add(category);
             else
             {
                 _selectedCategories.Remove(category);
             }
 
             // Update your UI feedback
-            _countTrackerLabel.Text = $"Selected: {_selectedCategories.Count} / 5";
-            _generateButton.IsEnabled = (_selectedCategories.Count == 5);
+            _countTrackerLabel.Text = $"Selected: {_selectedCategories.Count} / 6";
+            _generateButton.IsEnabled = (_selectedCategories.Count == 6);
         }
     }
-
+    // When the user clicks the "GENERATE" button, this method will be called to finalize the selection and close the popup.
     private void OnGenerateClicked(object? sender, EventArgs e)
     {
-        if (_selectedCategories.Count == 5)
+        if (_selectedCategories.Count == 6)
         {
             // Extract the names for your final game generation
             FinalSelection = _selectedCategories.Select(c => c.Name).ToList();

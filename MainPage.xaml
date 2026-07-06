@@ -1,19 +1,21 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="jeo_ano_ba.MainPage"
-             Title="Backend Integration Tester"
+             Title="Jeopardy"
              BackgroundColor="#0F0F2D">
 
     <Grid RowDefinitions="Auto, *, Auto" Padding="20" RowSpacing="15" ColumnSpacing="15">
 
-        <HorizontalStackLayout Grid.Row="0" Spacing="15" HorizontalOptions="Center">
-            <Button Text="🌐 CREATE CUSTOM GAME" Clicked="OnCreateCustomGameClicked" BackgroundColor="DarkOrange" TextColor="Black" FontAttributes="Bold"/>
-            <Label x:Name="ScoreHud" Text="SCORE: $0" FontSize="20" TextColor="#FFCC00" VerticalOptions="Center" FontAttributes="Bold" Margin="20,0,0,0"/>
+        <HorizontalStackLayout Grid.Row="0" Spacing="15" HorizontalOptions="End">
+            <Button Text="End Game"
+            Clicked="OnEndGameClicked"
+            BackgroundColor="#333333"
+            TextColor="White"
+            FontAttributes="Bold"/>
         </HorizontalStackLayout>
+        <Grid Grid.Row="1" ColumnDefinitions="0, *">
 
-        <Grid Grid.Row="1" ColumnDefinitions="200, *">
-
-            <VerticalStackLayout Grid.Column="0" Spacing="10" Padding="5">
+            <VerticalStackLayout Grid.Column="0" Spacing="10" Padding="5" IsVisible="False">
                 <Label Text="Games In Database:" TextColor="Gray" FontAttributes="Bold"/>
                 <ListView x:Name="GamesListView" ItemSelected="OnGameSelected" BackgroundColor="#1E1E3F">
                     <ListView.ItemTemplate>
@@ -53,17 +55,34 @@
                 </HorizontalStackLayout>
             </ScrollView>
         </Grid>
-
         <Grid x:Name="EvaluationModal" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="#F0000011" IsVisible="False">
             <Border BackgroundColor="#060CE9" Stroke="White" StrokeThickness="3" WidthRequest="450" HeightRequest="320" HorizontalOptions="Center" VerticalOptions="Center" Padding="20">
                 <VerticalStackLayout Spacing="15" VerticalOptions="Center">
-                    <Label x:Name="ModalClueLabel" Text="Clue Text" TextColor="White" FontSize="18" HorizontalTextAlignment="Center" LineBreakMode="WordWrap"/>
+                    <Label x:Name="ModalClueLabel" 
+                           TextColor="White" 
+                           FontSize="20" 
+                           HorizontalTextAlignment="Center" 
+                           LineBreakMode="WordWrap"/>
+
+                    <Label x:Name="TimerLabel"
+                           Text=""
+                           TextColor="#FFCC00"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           IsVisible="False"/>
 
                     <Label x:Name="ModalAnswerLabel" Text="Answer Text" TextColor="#FFCC00" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" IsVisible="False"/>
 
-                    <HorizontalStackLayout x:Name="PreAnswerButtonRow" Spacing="15" HorizontalOptions="Center">
-                        <Button Text="SHOW ANSWER" Clicked="OnShowAnswerClicked" BackgroundColor="#FFCC00" TextColor="Black" FontAttributes="Bold"/>
-                        <Button Text="PASS" Clicked="OnPassClicked" BackgroundColor="Red" TextColor="White"/>
+                    <HorizontalStackLayout x:Name="PreAnswerButtonRow"
+                       Spacing="15"
+                       HorizontalOptions="Center"
+                       IsVisible="False">
+                        <Button Text="SHOW ANSWER"
+                        Clicked="OnShowAnswerClicked"
+                        BackgroundColor="#FFCC00"
+                        TextColor="Black"
+                        FontAttributes="Bold"/>
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout x:Name="PostAnswerButtonRow" Spacing="15" HorizontalOptions="Center" IsVisible="False">

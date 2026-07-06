@@ -8,22 +8,21 @@ namespace jeo_ano_ba;
 
 public class CustomGameBuilderPage : ContentPage
 {
-    private const int CategoryCount = 5;
+    private const int CategoryCount = 6;
     private const int CluesPerCategory = 5;
-    private static readonly int[] PointValues = { 200, 400, 600, 800, 1000 };
+    private static readonly int[] PointValues = { 100, 200, 300, 400, 500 };
 
     private readonly GameDatabaseService _dbService;
-    private readonly List<Player> _players;
 
     private readonly Entry _titleEntry;
     private readonly List<Entry> _categoryNameEntries = new();
     private readonly List<List<Entry>> _questionEntries = new();
     private readonly List<List<Entry>> _answerEntries = new();
 
-    public CustomGameBuilderPage(GameDatabaseService dbService, List<Player> players)
+    public CustomGameBuilderPage(GameDatabaseService dbService)
     {
         _dbService = dbService;
-        _players = players;
+        
         BackgroundColor = Color.FromArgb("#0D0B1E");
 
         _titleEntry = new Entry { Placeholder = "Game Title", TextColor = Colors.White, PlaceholderColor = Colors.Gray };
@@ -91,27 +90,36 @@ public class CustomGameBuilderPage : ContentPage
         for (int c = 0; c < CategoryCount; c++)
         {
             string catName = _categoryNameEntries[c].Text?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(catName)) continue;
+
+            if (string.IsNullOrWhiteSpace(catName))
+            {
+                await DisplayAlert("Missing Info", "All 6 category names must be filled.", "OK");
+                return;
+            }
 
             var clues = new List<(string, string)>();
+
             for (int q = 0; q < CluesPerCategory; q++)
             {
                 string question = _questionEntries[c][q].Text?.Trim() ?? string.Empty;
                 string answer = _answerEntries[c][q].Text?.Trim() ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(question) || string.IsNullOrWhiteSpace(answer)) continue;
+
+                if (string.IsNullOrWhiteSpace(question) || string.IsNullOrWhiteSpace(answer))
+                {
+                    await DisplayAlert("Missing Info", "All 30 questions and answers must be filled.", "OK");
+                    return;
+                }
+
                 clues.Add((question, answer));
             }
 
-            if (clues.Count > 0) categories.Add(new CustomCategoryInput { CategoryName = catName, Clues = clues });
+            categories.Add(new CustomCategoryInput { CategoryName = catName, Clues = clues });
         }
-
-        if (categories.Count == 0)
-        {
-            await DisplayAlert("Missing Info", "Fill in at least one category with at least one question.", "OK");
-            return;
-        }
-
-        int gameId = await _dbService.BuildPlayerAuthoredGameAsync(title, categories);
-        await Navigation.PushAsync(new MainPage(_dbService, _players, gameId));
+        int gameId = await _dbService.BuildPlayerAuthoredGameAsync(
+            title,
+            categories,
+            startingPointValue: 100,
+            pointIncrement: 100);
+        await Navigation.PushAsync(new PlayerSetupPage(_dbService, gameId));
     }
 }
