@@ -216,6 +216,24 @@ public class GameDatabaseService
         await InitAsync();
         return await _database!.GetWithChildrenAsync<GameDb>(gameId, recursive: true);
     }
+    //METHOD ADDED BY VINCE, DELETE FUNCTION FOR THE SAVED GAMES
+    public async Task DeleteGameAsync(int gameId)
+    {
+        await InitAsync();
+        var categories = await _database!.Table<CategoryDb>().Where(category=> category.GameId == gameId).ToListAsync();
+        foreach (var category in categories)
+        {
+            var clues = await _database!.Table<ClueDb>().Where(clue => clue.CategoryId == category.Id).ToListAsync();
+            foreach (var clue in clues)
+            {
+                await _database.DeleteAsync(clue);
+            }
+            await _database.DeleteAsync(category);
+        }
+        var game = await _database.Table<GameDb>().FirstOrDefaultAsync(g => g.Id == gameId);
+        if (game != null)
+        { await _database.DeleteAsync(game); }
+    }
 
     public async Task UpdateClueStateAsync(ClueDb clue)
     {
