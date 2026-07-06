@@ -27,7 +27,7 @@ public partial class StartPage : ContentPage
             var categories = await _dbService.GetAvailableCategoriesAsync();
             if (categories.Count == 0)
             {
-                await DisplayAlert("No Categories", "No categories were found in the local database.", "OK");
+                await DisplayAlertAsync("No Categories", "No categories were found in the local database.", "OK");
                 return;
             }
 
@@ -52,13 +52,13 @@ public partial class StartPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", ex.Message, "OK");
+            await DisplayAlertAsync("Error", ex.Message, "OK");
         }
     }
 
     // "CUSTOM GAME" button: player writes their own categories & questions, scoring is automatic
     private async void OnCustomGameClicked(object? sender, EventArgs e)
     {
-        await Navigation.PushAsync(new Views.MainMenuPage());
+        await Navigation.PushAsync(new Views.MainMenuPage(_dbService));
     }
 }

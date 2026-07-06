@@ -205,6 +205,87 @@ public class GameDatabaseService
         return game.Id;
     }
 
+    // methoid added by ara
+    public async Task UpdatePlayerAuthoredGameAsync(
+        int gameId,
+        string gameTitle,
+        List<CustomCategoryInput> categories,
+        int startingPointValue = 100,
+        int pointIncrement = 100)
+    {
+        await InitAsync();
+
+        var game = await _database!
+            .Table<GameDb>()
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+            throw new InvalidOperationException("The saved game could not be found.");
+
+        if (game.IsPreset)
+            throw new InvalidOperationException("Preset games cannot be edited.");
+
+        game.Name = string.IsNullOrWhiteSpace(gameTitle)
+            ? "Custom Game"
+            : gameTitle.Trim();
+
+        await _database.UpdateAsync(game);
+
+        var existingCategories = await _database
+            .Table<CategoryDb>()
+            .Where(c => c.GameId == gameId)
+            .OrderBy(c => c.Id)
+            .ToListAsync();
+
+        // Editing currently expects the normal 6-category custom board.
+        if (existingCategories.Count != categories.Count)
+        {
+            throw new InvalidOperationException(
+                "The saved board structure does not match the editor.");
+        }
+
+        for (int column = 0; column < categories.Count; column++)
+        {
+            CustomCategoryInput inputCategory = categories[column];
+            CategoryDb databaseCategory = existingCategories[column];
+
+            databaseCategory.Name =
+                inputCategory.CategoryName.Trim().ToUpper();
+
+            await _database.UpdateAsync(databaseCategory);
+
+            var existingClues = await _database
+                .Table<ClueDb>()
+                .Where(c => c.CategoryId == databaseCategory.Id)
+                .OrderBy(c => c.PointValue)
+                .ToListAsync();
+
+            if (existingClues.Count != inputCategory.Clues.Count)
+            {
+                throw new InvalidOperationException(
+                    $"Category {column + 1} does not contain the expected number of clues.");
+            }
+
+            for (int row = 0; row < inputCategory.Clues.Count; row++)
+            {
+                var (question, answer) = inputCategory.Clues[row];
+
+                ClueDb databaseClue = existingClues[row];
+
+                databaseClue.Question = question.Trim();
+                databaseClue.Answer = answer.Trim();
+
+                databaseClue.PointValue =
+                    startingPointValue + (row * pointIncrement);
+
+                // Editing the wording should not preserve a completed gameplay state.
+                databaseClue.IsCompleted = false;
+
+                await _database.UpdateAsync(databaseClue);
+            }
+        }
+    }
+
     public async Task<List<GameDb>> GetAllGamesAsync()
     {
         await InitAsync();
