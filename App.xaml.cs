@@ -1,22 +1,23 @@
 ﻿using jeo_ano_ba.Services;
+using jeo_ano_ba.Views;
 
 namespace jeo_ano_ba
 {
     public partial class App : Application
     {
-        private readonly StartPage _startPage;
+        private readonly MainMenuPage _mainMenuPage;
 
-        public App(StartPage startPage)
+        public App(MainMenuPage mainMenuPage)
         {
             InitializeComponent();
-            _startPage = startPage;
+            _mainMenuPage = mainMenuPage;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
             try
             {
-                return new Window(new NavigationPage(_startPage));
+                return new Window(new NavigationPage(_mainMenuPage));
             }
             catch (Exception ex)
             {

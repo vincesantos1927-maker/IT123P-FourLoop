@@ -19,6 +19,6 @@ public partial class SavedGamesPage : ContentPage
         await CreateButton.ScaleToAsync(0.90, 70, Easing.CubicIn);
         await CreateButton.ScaleToAsync(1.00, 120, Easing.SpringOut);
 
-        await Shell.Current.GoToAsync(nameof(NewBoardPage));
+        await Navigation.PushAsync(new NewBoardPage());
     }
 }

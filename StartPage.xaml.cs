@@ -76,6 +76,6 @@ public partial class StartPage : ContentPage
     // "CUSTOM GAME" button: player writes their own categories & questions, scoring is automatic
     private async void OnCustomGameClicked(object? sender, EventArgs e)
     {
-        await Navigation.PushAsync(new CustomGameBuilderPage(_dbService, BuildPlayerList()));
+        await Navigation.PushAsync(new Views.MainMenuPage());
     }
 }

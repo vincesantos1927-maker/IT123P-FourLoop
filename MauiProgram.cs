@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using jeo_ano_ba.Services; // Ensures it can find your database service
+using jeo_ano_ba.Views;    // Ensures it can find your MainMenuPage
 using CommunityToolkit.Maui; // 🛠️ Required for UseMauiCommunityToolkit()
 
 namespace jeo_ano_ba
@@ -40,6 +41,7 @@ namespace jeo_ano_ba
             // (the player list) that the DI container can't provide.
             // ====================================================================
 
+            builder.Services.AddTransient<MainMenuPage>();
             return builder.Build();
         }
     }

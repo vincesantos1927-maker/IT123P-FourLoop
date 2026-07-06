@@ -22,7 +22,7 @@ public partial class MainMenuPage : ContentPage
     {
         await AnimateButton(CustomGameButton);
 
-        await Shell.Current.GoToAsync(nameof(SavedGamesPage));
+        await Navigation.PushAsync(new SavedGamesPage());
     }
 
     private async void GeneralKnowledgeTapped(object sender, TappedEventArgs e)
@@ -33,6 +33,9 @@ public partial class MainMenuPage : ContentPage
             "General Knowledge",
             "This feature will connect to the Trivia API later.",
             "OK");
+
+        // TODO:
+        // await Navigation.PushAsync(new PlayerSetupPage());
     }
 
     private async void MusicTapped(object sender, TappedEventArgs e)
