@@ -67,6 +67,9 @@ public class ClueDb : INotifyPropertyChanged
     [Ignore]
     public string UserIdentificationInput { get; set; } = string.Empty;
 
+    [Ignore]
+    public string CategoryName { get; set; } = string.Empty;
+
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 public class JeopardyClue
