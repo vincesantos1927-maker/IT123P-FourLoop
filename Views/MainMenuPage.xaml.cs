@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui.Views;
 using jeo_ano_ba.Services;
 
 namespace jeo_ano_ba.Views;
@@ -33,13 +34,29 @@ public partial class MainMenuPage : ContentPage
     {
         await AnimateButton(GeneralKnowledgeButton);
 
-        await DisplayAlertAsync(
-            "Preset Categories",
-            "This feature will connect to the Player Setup page later.",
-            "OK");
+        var categories = await _dbService.GetAvailableCategoriesAsync();
 
-        // TODO:
-        // Connect to the Player Setup flow for preset/API games.
+        if (categories == null || categories.Count == 0)
+        {
+            await DisplayAlert(
+                "No Categories Found",
+                "There are no preset categories available yet.",
+                "OK");
+            return;
+        }
+
+        var popup = new CategorySelectorPopup(categories);
+        var result = await this.ShowPopupAsync(popup);
+
+        // result is null if the user cancelled
+        if (result is not List<string> chosenCategories || chosenCategories.Count != 6)
+            return;
+
+        int gameId = await _dbService.BuildCustomGameFromCategoriesAsync(
+            "General Knowledge",
+            chosenCategories);
+
+        await Navigation.PushAsync(new PlayerSetupPage(_dbService, gameId));
     }
 
     private async void MusicTapped(object sender, TappedEventArgs e)
