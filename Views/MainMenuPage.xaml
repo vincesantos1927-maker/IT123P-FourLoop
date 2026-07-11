@@ -240,10 +240,10 @@
 
                     <Border.Shadow>
                         <Shadow
-                            Brush="#8A6A00"
-                            Radius="18"
-                            Offset="0,8"
-                            Opacity="0.30"/>
+                            Brush="#FFD700"
+                            Radius="22"
+                            Offset="0,10"
+                            Opacity="0.45"/>
                     </Border.Shadow>
 
                     <Border.GestureRecognizers>

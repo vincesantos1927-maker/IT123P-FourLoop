@@ -49,6 +49,7 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<MainMenuPage>();
             builder.Services.AddTransient<SavedGamesPage>();
             builder.Services.AddTransient<NewBoardPage>();
+            builder.Services.AddTransient<PlayerSetupPage>();
 
             return builder.Build();
         }

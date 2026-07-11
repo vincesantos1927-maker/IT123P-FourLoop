@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="jeo_ano_ba.Views.PlayerSetupPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#07182F">
+
+    <Grid>
+
+        <!-- Background -->
+
+        <Image
+            Source="bg3.png"
+            Aspect="AspectFill"
+            InputTransparent="True"/>
+
+        <Grid Padding="24,40,24,30">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ================= HEADER ================= -->
+
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="Auto,*"
+                Margin="0,0,0,20">
+
+                <Border
+                    WidthRequest="46"
+                    HeightRequest="46"
+                    BackgroundColor="#234A78"
+                    StrokeThickness="0">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="23"/>
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="CloseTapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="✕"
+                        FontSize="20"
+                        TextColor="#FFD700"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"/>
+
+                </Border>
+
+                <Label
+                    Grid.Column="1"
+                    Margin="16,0,0,0"
+                    VerticalOptions="Center"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    Text="Player Setup"
+                    TextColor="White"/>
+
+            </Grid>
+
+            <!-- ================= PLAYER CARD ================= -->
+
+            <Border
+                Grid.Row="1"
+                Padding="18"
+                Margin="0,0,0,18"
+                BackgroundColor="#162C55"
+                Stroke="#28436B">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22"/>
+                </Border.StrokeShape>
+
+                <VerticalStackLayout>
+
+                    <Grid
+                        ColumnDefinitions="*,Auto,50,55,Auto"
+                        Margin="0,0,0,18">
+
+                        <Label
+                            Text="PLAYERS"
+                            TextColor="#FFD700"
+                            FontAttributes="Bold"
+                            FontSize="18"
+                            VerticalOptions="Center"/>
+
+                        <!-- Minus -->
+
+                        <Border
+                            Grid.Column="1"
+                            WidthRequest="42"
+                            HeightRequest="42"
+                            BackgroundColor="#234A78"
+                            StrokeThickness="0.5"
+                            Stroke="#4C6587">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="21"/>
+                            </Border.StrokeShape>
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Tapped="PlayerMinusTapped"/>
+                            </Border.GestureRecognizers>
+
+                            <Label
+                                Text="−"
+                                FontSize="24"
+                                TextColor="#FFD700"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"/>
+
+                        </Border>
+
+                        <!-- Player Count -->
+
+                        <Label
+                            x:Name="PlayerCountLabel"
+                            Grid.Column="2"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            HorizontalTextAlignment="Center"
+                            Text="2"
+                            FontSize="24"
+                            FontAttributes="Bold"
+                            TextColor="White"/>
+
+                        <!-- Plus -->
+
+                        <Border
+                            Grid.Column="3"
+                            WidthRequest="42"
+                            HeightRequest="42"
+                            BackgroundColor="#234A78"
+                            StrokeThickness="0.5"
+                            Stroke="#4C6587">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="21"/>
+                            </Border.StrokeShape>
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Tapped="PlayerPlusTapped"/>
+                            </Border.GestureRecognizers>
+
+                            <Label
+                                Text="+"
+                                FontSize="22"
+                                TextColor="#FFD700"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"/>
+
+                        </Border>
+
+                    </Grid>
+
+                    <!-- Dynamic Player List -->
+
+                    <VerticalStackLayout
+                        x:Name="PlayersContainer"
+                        Spacing="12"/>
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- ================= TIMER CARD ================= -->
+
+            <Border
+                Grid.Row="2"
+                Padding="18"
+                Margin="0,0,0,20"
+                BackgroundColor="#162C55"
+                Stroke="#28436B">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22"/>
+                </Border.StrokeShape>
+
+                <Grid
+                    ColumnDefinitions="*,Auto,Auto,Auto">
+
+                    <VerticalStackLayout>
+
+                        <Label
+                            Text="TIMER DURATION"
+                            TextColor="#FFD700"
+                            FontAttributes="Bold"
+                            FontSize="18"/>
+
+                        <Label
+                            Text="Seconds per answer"
+                            FontSize="14"
+                            TextColor="#7E91AA"/>
+
+                    </VerticalStackLayout>
+
+                    <!-- Minus -->
+
+                    <Border
+                        Grid.Column="1"
+                        WidthRequest="50"
+                        HeightRequest="50"
+                        Margin="0,0,16,0"
+                        BackgroundColor="#234A78"
+                        Stroke="#4C6587">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="25"/>
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Tapped="TimerMinusTapped"/>
+                        </Border.GestureRecognizers>
+
+                        <Label
+                            Text="−"
+                            FontSize="24"
+                            TextColor="#FFD700"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"/>
+
+                    </Border>
+
+                    <Label
+                        x:Name="TimerLabel"
+                        Grid.Column="2"
+                        Text="30"
+                        FontSize="30"
+                        FontAttributes="Bold"
+                        TextColor="White"
+                        VerticalOptions="Center"/>
+
+                    <!-- Plus -->
+
+                    <Border
+                        Grid.Column="3"
+                        WidthRequest="50"
+                        HeightRequest="50"
+                        Margin="16,0,0,0"
+                        BackgroundColor="#234A78"
+                        Stroke="#4C6587">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="25"/>
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Tapped="TimerPlusTapped"/>
+                        </Border.GestureRecognizers>
+
+                        <Label
+                            Text="+"
+                            FontSize="24"
+                            TextColor="#FFD700"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"/>
+
+                    </Border>
+
+                </Grid>
+
+            </Border>
+
+            <!-- Spacer -->
+
+            <Grid Grid.Row="3"/>
+
+            <!-- ================= START BUTTON ================= -->
+
+            <Border
+                Grid.Row="4"
+                HeightRequest="70"
+                BackgroundColor="#FFD200"
+                StrokeThickness="0">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24"/>
+                </Border.StrokeShape>
+
+                <Border.Shadow>
+                    <Shadow
+                        Brush="#FFD700"
+                        Radius="22"
+                        Offset="0,10"
+                        Opacity="0.45"/>
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer
+                        Tapped="StartGameTapped"/>
+                </Border.GestureRecognizers>
+
+                <Label
+                    Text="Start Game"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    TextColor="Black"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"/>
+
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
