@@ -49,11 +49,22 @@ public partial class SavedGamesPage : ContentPage
                 await _dbService.GetAllGamesAsync();
 
             // Do not show Master Library / preset games
-            List<GameDb> savedGames = allGames
-                .Where(game => !game.IsPreset)
-                .OrderByDescending(game => game.Id)
-                .ToList();
-
+            List<GameDb> savedGames = new();
+            foreach (GameDb db in allGames.Where(game => !game.IsPreset))
+            {
+                GameDb detailedGame = await _dbService.GetGameWithDetailsAsync(db.Id);
+                bool hasUnfinishedClues = detailedGame.Categories.SelectMany(category => category.Clues).Any(clue => !clue.IsCompleted);
+                if (hasUnfinishedClues)
+                {
+                    savedGames.Add(db);
+                }
+                else
+                {
+                    await _dbService.DeleteGameAsync(db.Id);
+                }
+             
+            }
+            savedGames = savedGames.OrderByDescending(game => game.Id).ToList(); // Sort by Id descending to show the most recent games first
 
             // EMPTY STATE
 
