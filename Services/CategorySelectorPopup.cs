@@ -21,6 +21,8 @@ public class CategorySelectorPopup : Popup {
     public CategorySelectorPopup(List<CategoryDb> availableCategories) {
         _allCategories = availableCategories;
 
+        Color = Colors.Transparent;
+
         // ----- HEADER: X close button, title, X/6 badge -----
         var closeButton = new Button {
             Text = "✕",
@@ -83,6 +85,9 @@ public class CategorySelectorPopup : Popup {
         _collectionView = new CollectionView {
             SelectionMode = SelectionMode.None,
             ItemsSource = _allCategories,
+            ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical) {
+                ItemSpacing = 3
+            },
             ItemTemplate = new DataTemplate(() => {
                 var checkCircleLabel = new Label {
                     Text = "✓",
@@ -99,7 +104,7 @@ public class CategorySelectorPopup : Popup {
                     HeightRequest = 26,
                     StrokeShape = new RoundRectangle { CornerRadius = 13 },
                     Content = checkCircleLabel,
-                    IsVisible = false
+                    Opacity = 0
                 };
 
                 var nameLabel = new Label {
@@ -119,11 +124,11 @@ public class CategorySelectorPopup : Popup {
 
                 var pillBorder = new Border {
                     BackgroundColor = NavyUnselected,
-                    Stroke = Colors.Transparent,
-                    StrokeThickness = 1.5,
+                    Stroke = NavyUnselected,
+                    StrokeThickness = 1,
                     StrokeShape = new RoundRectangle { CornerRadius = 14 },
                     Content = rowGrid,
-                    Margin = new Thickness(0, 4)
+                    Margin = new Thickness(0)
                 };
 
                 var tapGesture = new TapGestureRecognizer();
@@ -188,14 +193,14 @@ public class CategorySelectorPopup : Popup {
         if (isCurrentlySelected) {
             _selectedCategories.Remove(category);
             pillBorder.BackgroundColor = NavyUnselected;
-            pillBorder.Stroke = Colors.Transparent;
-            checkCircle.IsVisible = false;
+            pillBorder.Stroke = NavyUnselected;
+            checkCircle.Opacity = 0;
         }
         else {
             _selectedCategories.Add(category);
             pillBorder.BackgroundColor = OliveSelected;
             pillBorder.Stroke = GoldAccent;
-            checkCircle.IsVisible = true;
+            checkCircle.Opacity = 1;
         }
 
         _countBadgeLabel.Text = $"{_selectedCategories.Count}/6";

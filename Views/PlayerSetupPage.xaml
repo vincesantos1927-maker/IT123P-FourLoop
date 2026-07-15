@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage
     x:Class="jeo_ano_ba.Views.PlayerSetupPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -8,8 +7,6 @@
     BackgroundColor="#07182F">
 
     <Grid>
-
-        <!-- Background -->
 
         <Image
             Source="bg3.png"
@@ -22,11 +19,10 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
-            <!-- ================= HEADER ================= -->
 
             <Grid
                 Grid.Row="0"
@@ -67,10 +63,51 @@
 
             </Grid>
 
-            <!-- ================= PLAYER CARD ================= -->
-
             <Border
                 Grid.Row="1"
+                Padding="18"
+                Margin="0,0,0,18"
+                BackgroundColor="#162C55"
+                Stroke="#28436B">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22"/>
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label
+                        Text="BOARD NAME"
+                        TextColor="#FFD700"
+                        FontAttributes="Bold"
+                        FontSize="18"/>
+
+                    <Border
+                        BackgroundColor="#0F2342"
+                        Stroke="#375D99"
+                        StrokeThickness="1"
+                        Padding="14,6">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14"/>
+                        </Border.StrokeShape>
+
+                        <Entry
+                            x:Name="BoardNameEntry"
+                            Placeholder="Enter board name"
+                            TextColor="White"
+                            PlaceholderColor="#6D7B93"
+                            FontSize="16"
+                            BackgroundColor="Transparent"
+                            MaxLength="100"
+                            ClearButtonVisibility="Never"/>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                Grid.Row="2"
                 Padding="18"
                 Margin="0,0,0,18"
                 BackgroundColor="#162C55"
@@ -92,8 +129,6 @@
                             FontAttributes="Bold"
                             FontSize="18"
                             VerticalOptions="Center"/>
-
-                        <!-- Minus -->
 
                         <Border
                             Grid.Column="1"
@@ -121,8 +156,6 @@
 
                         </Border>
 
-                        <!-- Player Count -->
-
                         <Label
                             x:Name="PlayerCountLabel"
                             Grid.Column="2"
@@ -133,8 +166,6 @@
                             FontSize="24"
                             FontAttributes="Bold"
                             TextColor="White"/>
-
-                        <!-- Plus -->
 
                         <Border
                             Grid.Column="3"
@@ -164,8 +195,6 @@
 
                     </Grid>
 
-                    <!-- Dynamic Player List -->
-
                     <VerticalStackLayout
                         x:Name="PlayersContainer"
                         Spacing="12"/>
@@ -174,10 +203,8 @@
 
             </Border>
 
-            <!-- ================= TIMER CARD ================= -->
-
             <Border
-                Grid.Row="2"
+                Grid.Row="3"
                 Padding="18"
                 Margin="0,0,0,20"
                 BackgroundColor="#162C55"
@@ -204,8 +231,6 @@
                             TextColor="#7E91AA"/>
 
                     </VerticalStackLayout>
-
-                    <!-- Minus -->
 
                     <Border
                         Grid.Column="1"
@@ -242,8 +267,6 @@
                         TextColor="White"
                         VerticalOptions="Center"/>
 
-                    <!-- Plus -->
-
                     <Border
                         Grid.Column="3"
                         WidthRequest="50"
@@ -274,14 +297,10 @@
 
             </Border>
 
-            <!-- Spacer -->
-
-            <Grid Grid.Row="3"/>
-
-            <!-- ================= START BUTTON ================= -->
+            <Grid Grid.Row="4"/>
 
             <Border
-                Grid.Row="4"
+                Grid.Row="5"
                 HeightRequest="70"
                 BackgroundColor="#FFD200"
                 StrokeThickness="0">
