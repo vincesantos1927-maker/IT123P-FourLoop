@@ -13,7 +13,7 @@ public partial class NewBoardPage : ContentPage
     // has value = editing an existing saved board
     private readonly int? _editingGameId;
 
-    private readonly int[] values = { 100, 200, 300, 400, 500 };
+    private readonly int[] values = { 200, 400, 600, 800, 1000 };
 
     private Border? _selectedTile;
 
@@ -74,108 +74,91 @@ public partial class NewBoardPage : ContentPage
 
     private void BuildBoard()
     {
-        BoardGrid.ColumnSpacing = 8;
-        BoardGrid.RowSpacing = 8;
-
         BoardGrid.Children.Clear();
         BoardGrid.ColumnDefinitions.Clear();
         BoardGrid.RowDefinitions.Clear();
 
+        // Same spacing as MainPage
+        BoardGrid.ColumnSpacing = 4;
+        BoardGrid.RowSpacing = 4;
 
-        // 6 columns
-
+        // 6 equal columns
         for (int i = 0; i < 6; i++)
         {
-            BoardGrid.ColumnDefinitions.Add(
-                new ColumnDefinition
-                {
-                    Width = 150
-                });
+            BoardGrid.ColumnDefinitions.Add(new ColumnDefinition
+            {
+                Width = GridLength.Star
+            });
         }
 
+        // Category row
+        BoardGrid.RowDefinitions.Add(new RowDefinition
+        {
+            Height = 58
+        });
 
-        // Header row
-
-        BoardGrid.RowDefinitions.Add(
-            new RowDefinition
-            {
-                Height = 50
-            });
-
-
-        // 5 clue rows
-
+        // Five clue rows
         for (int i = 0; i < 5; i++)
         {
-            BoardGrid.RowDefinitions.Add(
-                new RowDefinition
-                {
-                    Height = 150
-                });
+            BoardGrid.RowDefinitions.Add(new RowDefinition
+            {
+                Height = GridLength.Star
+            });
         }
 
-
-        // ========================================================
+        // ===============================
         // CATEGORY HEADERS
-        // ========================================================
+        // ===============================
 
         for (int col = 0; col < 6; col++)
         {
             var entry = new Entry
             {
                 Placeholder = "Category",
+                PlaceholderColor = Color.FromArgb("#7E8DA9"),
+                TextColor = Color.FromArgb("#FFD700"),
 
-                PlaceholderColor =
-                    Color.FromArgb("#6D7B93"),
+                BackgroundColor = Colors.Transparent,
 
-                TextColor =
-                    Color.FromArgb("#FFD700"),
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalTextAlignment = TextAlignment.Center,
 
-                HorizontalTextAlignment =
-                    TextAlignment.Center,
+                FontSize = 10,
+                FontAttributes = FontAttributes.Bold,
 
-                FontAttributes =
-                    FontAttributes.Bold,
-
-                BackgroundColor =
-                    Colors.Transparent
+                Margin = 0
             };
-
 
             _categoryEntries[col] = entry;
 
-
-            var header = new Border
+            var border = new Border
             {
-                BackgroundColor =
-                    Color.FromArgb("#102646"),
+                BackgroundColor = Color.FromArgb("#1E1E3F"),
 
-                Stroke =
-                    Color.FromArgb("#D7B53C"),
+                Stroke = Color.FromArgb("#FFD700"),
+                StrokeThickness = 1,
 
-                StrokeThickness = 0.5,
+                Padding = 4,
 
-                StrokeShape =
-                    new RoundRectangle
-                    {
-                        CornerRadius =
-                            new CornerRadius(14)
-                    },
+                HeightRequest = 54,
+
+                StrokeShape = new RoundRectangle
+                {
+                    CornerRadius = new CornerRadius(10)
+                },
 
                 Content = entry
             };
 
+            Grid.SetRow(border, 0);
+            Grid.SetColumn(border, col);
 
-            Grid.SetRow(header, 0);
-            Grid.SetColumn(header, col);
-
-            BoardGrid.Children.Add(header);
+            BoardGrid.Children.Add(border);
         }
 
-
-        // ========================================================
+        // ===============================
         // CLUE CELLS
-        // ========================================================
+        // ===============================
 
         for (int row = 1; row <= 5; row++)
         {
@@ -185,129 +168,78 @@ public partial class NewBoardPage : ContentPage
                 int tileColumn = col;
                 int tileValue = values[tileRow];
 
-
                 var label = new Label
                 {
-                    Text =
-                        tileValue.ToString(),
+                    Text = $"${tileValue}",
 
-                    FontSize = 18,
+                    TextColor = Color.FromArgb("#FFD700"),
 
-                    FontAttributes =
-                        FontAttributes.Bold,
+                    FontSize = 16,
 
-                    TextColor =
-                        Color.FromArgb("#7A7233"),
+                    FontAttributes = FontAttributes.Bold,
 
-                    HorizontalOptions =
-                        LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center,
 
-                    VerticalOptions =
-                        LayoutOptions.Center
+                    VerticalOptions = LayoutOptions.Center,
+
+                    HorizontalTextAlignment = TextAlignment.Center,
+
+                    VerticalTextAlignment = TextAlignment.Center
                 };
 
-
-                _cellLabels[tileColumn, tileRow] =
-                    label;
-
+                _cellLabels[tileColumn, tileRow] = label;
 
                 var tile = new Border
                 {
-                    BackgroundColor =
-                        Color.FromArgb("#284C84"),
+                    BackgroundColor = Color.FromArgb("#284C84"),
 
-                    Stroke =
-                        Color.FromArgb("#375D99"),
+                    Stroke = Color.FromArgb("#375D99"),
 
                     StrokeThickness = 1,
 
-                    StrokeShape =
-                        new RoundRectangle
-                        {
-                            CornerRadius =
-                                new CornerRadius(16)
-                        },
+                    Padding = 2,
+
+                    StrokeShape = new RoundRectangle
+                    {
+                        CornerRadius = new CornerRadius(10)
+                    },
 
                     Content = label
                 };
 
-
-                var tap =
-                    new TapGestureRecognizer();
-
+                var tap = new TapGestureRecognizer();
 
                 tap.Tapped += (sender, args) =>
                 {
-                    // Reset previous selected tile
-
                     if (_selectedTile != null)
                     {
                         _selectedTile.StrokeThickness = 1;
-
-                        _selectedTile.Stroke =
-                            Color.FromArgb("#375D99");
+                        _selectedTile.Stroke = Color.FromArgb("#FFCC00");
                     }
 
+                    _selectedRow = tileRow;
+                    _selectedColumn = tileColumn;
 
-                    // Remember selected position
+                    _selectedTile = tile;
 
-                    _selectedRow =
-                        tileRow;
+                    _selectedTile.StrokeThickness = 3;
+                    _selectedTile.Stroke = Colors.White;
 
-                    _selectedColumn =
-                        tileColumn;
-
-
-                    // Highlight selected tile
-
-                    _selectedTile =
-                        tile;
-
-                    _selectedTile.StrokeThickness =
-                        2;
-
-                    _selectedTile.Stroke =
-                        Color.FromArgb("#FFD700");
-
-
-                    // Show point value
-
-                    PopupValueLabel.Text =
-                        $"{tileValue}";
-
-
-                    // Load existing question
+                    PopupValueLabel.Text = $"${tileValue}";
 
                     QuestionEditor.Text =
-                        _questions[
-                            tileColumn,
-                            tileRow]
-                        ?? string.Empty;
-
-
-                    // Load existing answer
+                        _questions[tileColumn, tileRow] ?? "";
 
                     AnswerEntry.Text =
-                        _answers[
-                            tileColumn,
-                            tileRow]
-                        ?? string.Empty;
+                        _answers[tileColumn, tileRow] ?? "";
 
-
-                    // Open popup
-
-                    PopupOverlay.IsVisible =
-                        true;
+                    PopupOverlay.IsVisible = true;
                 };
-
 
                 tile.GestureRecognizers.Add(tap);
 
-
                 Grid.SetRow(tile, row);
-
                 Grid.SetColumn(tile, col);
-
 
                 BoardGrid.Children.Add(tile);
             }

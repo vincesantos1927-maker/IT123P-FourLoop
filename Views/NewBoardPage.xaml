@@ -92,20 +92,15 @@
 
                 <!-- Horizontal Scroll -->
 
-                <ScrollView Orientation="Horizontal">
+                <Grid Grid.Row="1">
 
-                    <!-- Vertical Scroll -->
+                    <Grid
+                        x:Name="BoardGrid"
+                        Margin="0,4,0,0"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill"/>
 
-                    <ScrollView Orientation="Vertical">
-
-                        <Grid
-                            x:Name="BoardGrid"
-                            WidthRequest="1260"
-                            HeightRequest="900"/>
-
-                    </ScrollView>
-
-                </ScrollView>
+                </Grid>
 
             </Grid>
 
