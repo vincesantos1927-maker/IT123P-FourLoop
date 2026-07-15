@@ -44,8 +44,6 @@ namespace jeo_ano_ba
             // PAGES
             // ============================================
 
-            builder.Services.AddTransient<StartPage>();
-
             builder.Services.AddTransient<MainMenuPage>();
             builder.Services.AddTransient<SavedGamesPage>();
             builder.Services.AddTransient<NewBoardPage>();

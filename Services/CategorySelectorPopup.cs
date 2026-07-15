@@ -1,154 +1,224 @@
 ﻿using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls.Shapes;
-using jeo_ano_ba.Models; // Ensure this matches your project structure
+using jeo_ano_ba.Models;
 
 namespace jeo_ano_ba.Services;
 
-public class CategorySelectorPopup : Popup
-{
-    // Use a list of objects to track selection
+public class CategorySelectorPopup : Popup {
+    private readonly List<CategoryDb> _allCategories;
     private readonly List<CategoryDb> _selectedCategories = new();
-    //stores the text of the selected categories to be used in the game
     public List<string>? FinalSelection { get; private set; }
 
-    // ung label na "Selected: " sa taas
-    private readonly Label _countTrackerLabel;
-    //button that the user clicks to finish creating the game board
-    private readonly Button _generateButton;
+    private readonly Label _countBadgeLabel;
+    private readonly Button _continueButton;
+    private readonly CollectionView _collectionView;
+    private readonly SearchBar _searchBar;
 
-    // pang popup UI layout, the available categories, action buttons
-    public CategorySelectorPopup(List<CategoryDb> availableCategories)
-    {
-        _countTrackerLabel = new Label
-        {
-            Text = "Selected: 0 / 6",
-            FontSize = 14,
+    private static readonly Color NavyUnselected = Color.FromArgb("#1E3A5F");
+    private static readonly Color OliveSelected = Color.FromArgb("#2E2E14");
+    private static readonly Color GoldAccent = Color.FromArgb("#FFCC00");
+
+    public CategorySelectorPopup(List<CategoryDb> availableCategories) {
+        _allCategories = availableCategories;
+
+        // ----- HEADER: X close button, title, X/6 badge -----
+        var closeButton = new Button {
+            Text = "✕",
+            BackgroundColor = Color.FromArgb("#2A2A4E"),
             TextColor = Colors.White,
-            HorizontalOptions = LayoutOptions.Center
+            WidthRequest = 36,
+            HeightRequest = 36,
+            CornerRadius = 18,
+            Padding = 0,
+            FontSize = 16
         };
+        closeButton.Clicked += (s, e) => Close(null);
 
-        _generateButton = new Button
-        {
-            Text = "GENERATE",
-            BackgroundColor = Color.FromArgb("#FF9800"),
-            TextColor = Colors.Black,
+        var titleLabel = new Label {
+            Text = "Pick Categories",
+            FontSize = 20,
             FontAttributes = FontAttributes.Bold,
-            IsEnabled = false
+            TextColor = Colors.White,
+            VerticalOptions = LayoutOptions.Center
         };
-        _generateButton.Clicked += OnGenerateClicked;
 
-        var cancelButton = new Button
-        {
-            Text = "CANCEL",
-            BackgroundColor = Color.FromArgb("#333333"),
-            TextColor = Colors.White
+        _countBadgeLabel = new Label {
+            Text = "0/6",
+            FontSize = 14,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = GoldAccent,
+            VerticalOptions = LayoutOptions.Center,
+            HorizontalTextAlignment = TextAlignment.Center
         };
-        cancelButton.Clicked += (s, e) => Close(null);
+        var countBadge = new Border {
+            BackgroundColor = Color.FromArgb("#1E3A5F"),
+            Padding = new Thickness(12, 4),
+            StrokeShape = new RoundRectangle { CornerRadius = 14 },
+            Content = _countBadgeLabel
+        };
 
-        var collectionView = new CollectionView
-        {
-            SelectionMode = SelectionMode.None,
-            ItemsSource = availableCategories, // Now passing List<CategoryDb>
-            ItemTemplate = new DataTemplate(() =>
+        var headerGrid = new Grid {
+            ColumnDefinitions =
             {
-                var grid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) } };
+                new ColumnDefinition(GridLength.Auto),
+                new ColumnDefinition(GridLength.Star),
+                new ColumnDefinition(GridLength.Auto)
+            },
+            ColumnSpacing = 10
+        };
+        headerGrid.Add(closeButton, 0, 0);
+        headerGrid.Add(titleLabel, 1, 0);
+        headerGrid.Add(countBadge, 2, 0);
 
-                var checkBox = new CheckBox();
-                // Bind to the object's properties
-                checkBox.CheckedChanged += OnCategoryCheckedChanged;
+        // ----- SEARCH BAR -----
+        _searchBar = new SearchBar {
+            Placeholder = "Search categories...",
+            BackgroundColor = Color.FromArgb("#1E3A5F"),
+            TextColor = Colors.White,
+            PlaceholderColor = Color.FromArgb("#AAB4C8")
+        };
+        _searchBar.TextChanged += OnSearchTextChanged;
 
-                var label = new Label
-                {
-                    VerticalOptions = LayoutOptions.Center,
-                    TextColor = Colors.White
+        // ----- CATEGORY LIST -----
+        _collectionView = new CollectionView {
+            SelectionMode = SelectionMode.None,
+            ItemsSource = _allCategories,
+            ItemTemplate = new DataTemplate(() => {
+                var checkCircleLabel = new Label {
+                    Text = "✓",
+                    TextColor = Color.FromArgb("#0F0F2D"),
+                    FontAttributes = FontAttributes.Bold,
+                    FontSize = 14,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalTextAlignment = TextAlignment.Center
                 };
-                label.SetBinding(Label.TextProperty, "Name"); // Binding to CategoryDb.Name
 
-                grid.Add(checkBox, 0, 0);
-                grid.Add(label, 1, 0);
+                var checkCircle = new Border {
+                    BackgroundColor = GoldAccent,
+                    WidthRequest = 26,
+                    HeightRequest = 26,
+                    StrokeShape = new RoundRectangle { CornerRadius = 13 },
+                    Content = checkCircleLabel,
+                    IsVisible = false
+                };
 
-                return grid;
+                var nameLabel = new Label {
+                    TextColor = Colors.White,
+                    FontAttributes = FontAttributes.Bold,
+                    FontSize = 15,
+                    VerticalOptions = LayoutOptions.Center
+                };
+                nameLabel.SetBinding(Label.TextProperty, "Name");
+
+                var rowGrid = new Grid {
+                    ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                    Padding = new Thickness(16, 14)
+                };
+                rowGrid.Add(nameLabel, 0, 0);
+                rowGrid.Add(checkCircle, 1, 0);
+
+                var pillBorder = new Border {
+                    BackgroundColor = NavyUnselected,
+                    Stroke = Colors.Transparent,
+                    StrokeThickness = 1.5,
+                    StrokeShape = new RoundRectangle { CornerRadius = 14 },
+                    Content = rowGrid,
+                    Margin = new Thickness(0, 4)
+                };
+
+                var tapGesture = new TapGestureRecognizer();
+                tapGesture.Tapped += (s, e) => {
+                    if (pillBorder.BindingContext is CategoryDb category)
+                        ToggleCategory(category, pillBorder, checkCircle);
+                };
+                pillBorder.GestureRecognizers.Add(tapGesture);
+
+                return pillBorder;
             })
         };
 
-        // 🚀 FIXED: Grid layout with a Star row for the CollectionView so the
-        // action buttons (Cancel/Generate) always stay visible instead of being
-        // pushed off-screen by an unbounded VerticalStackLayout.
-        var mainGrid = new Grid
-        {
+        // ----- CONTINUE BUTTON -----
+        _continueButton = new Button {
+            Text = "Continue — 0/6 selected",
+            BackgroundColor = Color.FromArgb("#5C5A1E"),
+            TextColor = Colors.White,
+            FontAttributes = FontAttributes.Bold,
+            CornerRadius = 16,
+            HeightRequest = 52,
+            IsEnabled = false
+        };
+        _continueButton.Clicked += OnGenerateClicked;
+
+        // ----- MAIN LAYOUT -----
+        var mainGrid = new Grid {
             Padding = 20,
-            RowSpacing = 10,
-            WidthRequest = 350,
-            HeightRequest = 500,
+            RowSpacing = 14,
+            WidthRequest = 420,
+            HeightRequest = 620,
+            BackgroundColor = Color.FromArgb("#0F0F2D"),
             RowDefinitions =
             {
-                new RowDefinition(GridLength.Auto), // title
-                new RowDefinition(GridLength.Auto), // count tracker
-                new RowDefinition(GridLength.Star),  // collectionview — takes remaining space
-                new RowDefinition(GridLength.Auto)   // buttons
+                new RowDefinition(GridLength.Auto), // header
+                new RowDefinition(GridLength.Auto), // search
+                new RowDefinition(GridLength.Star),  // list
+                new RowDefinition(GridLength.Auto)   // continue button
             }
         };
 
-        var titleLabel = new Label
-        {
-            Text = "SELECT 6 CATEGORIES",
-            FontSize = 18,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Color.FromArgb("#FF9800"),
-            HorizontalOptions = LayoutOptions.Center
-        };
+        mainGrid.Add(headerGrid, 0, 0);
+        mainGrid.Add(_searchBar, 0, 1);
+        mainGrid.Add(_collectionView, 0, 2);
+        mainGrid.Add(_continueButton, 0, 3);
 
-        mainGrid.Add(titleLabel, 0, 0);
-        mainGrid.Add(_countTrackerLabel, 0, 1);
-        mainGrid.Add(collectionView, 0, 2);
-
-        var actionGrid = new Grid { ColumnSpacing = 10, ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) } };
-        actionGrid.Add(cancelButton, 0);
-        actionGrid.Add(_generateButton, 1);
-        mainGrid.Add(actionGrid, 0, 3);
-
-        Content = new Border
-        {
-            BackgroundColor = Color.FromArgb("#1E1E1E"),
-            Stroke = Color.FromArgb("#FF9800"),
+        Content = new Border {
+            BackgroundColor = Color.FromArgb("#0F0F2D"),
+            Stroke = GoldAccent,
             StrokeThickness = 2,
-            StrokeShape = new RoundRectangle { CornerRadius = 10 },
+            StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Content = mainGrid
         };
     }
-    // categories checkbox validation, if the user selects more than 6 categories, the checkbox will be unchecked and the user will be notified
-    private void OnCategoryCheckedChanged(object? sender, CheckedChangedEventArgs e)
-    {
-        if (sender is CheckBox checkBox && checkBox.BindingContext is CategoryDb category)
-        {
-            // Update the model property
-            category.IsSelected = e.Value;
 
-            // Maintain your selection list
-            if (_selectedCategories.Count >= 6 && !_selectedCategories.Contains(category))
-            {
-                checkBox.IsChecked = false;
-                return;
-            }
+    private void ToggleCategory(CategoryDb category, Border pillBorder, Border checkCircle) {
+        bool isCurrentlySelected = _selectedCategories.Contains(category);
 
-            if (!_selectedCategories.Contains(category))
-                _selectedCategories.Add(category);
-            else
-            {
-                _selectedCategories.Remove(category);
-            }
+        if (!isCurrentlySelected && _selectedCategories.Count >= 6)
+            return; // already at max, ignore tap
 
-            // Update your UI feedback
-            _countTrackerLabel.Text = $"Selected: {_selectedCategories.Count} / 6";
-            _generateButton.IsEnabled = (_selectedCategories.Count == 6);
+        if (isCurrentlySelected) {
+            _selectedCategories.Remove(category);
+            pillBorder.BackgroundColor = NavyUnselected;
+            pillBorder.Stroke = Colors.Transparent;
+            checkCircle.IsVisible = false;
         }
+        else {
+            _selectedCategories.Add(category);
+            pillBorder.BackgroundColor = OliveSelected;
+            pillBorder.Stroke = GoldAccent;
+            checkCircle.IsVisible = true;
+        }
+
+        _countBadgeLabel.Text = $"{_selectedCategories.Count}/6";
+        _continueButton.Text = $"Continue — {_selectedCategories.Count}/6 selected";
+        _continueButton.IsEnabled = (_selectedCategories.Count == 6);
+        _continueButton.BackgroundColor = (_selectedCategories.Count == 6)
+            ? GoldAccent
+            : Color.FromArgb("#5C5A1E");
+        _continueButton.TextColor = (_selectedCategories.Count == 6)
+            ? Color.FromArgb("#0F0F2D")
+            : Colors.White;
     }
-    // When the user clicks the "GENERATE" button, this method will be called to finalize the selection and close the popup.
-    private void OnGenerateClicked(object? sender, EventArgs e)
-    {
-        if (_selectedCategories.Count == 6)
-        {
-            // Extract the names for your final game generation
+
+    private void OnSearchTextChanged(object? sender, TextChangedEventArgs e) {
+        string query = e.NewTextValue?.Trim().ToLower() ?? "";
+
+        _collectionView.ItemsSource = string.IsNullOrEmpty(query)
+            ? _allCategories
+            : _allCategories.Where(c => c.Name.ToLower().Contains(query)).ToList();
+    }
+
+    private void OnGenerateClicked(object? sender, EventArgs e) {
+        if (_selectedCategories.Count == 6) {
             FinalSelection = _selectedCategories.Select(c => c.Name).ToList();
             Close(FinalSelection);
         }
