@@ -7,7 +7,7 @@
 
         <!-- HEADER -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="20,20,20,0">
-            <Label Text="JEOPARDY"
+            <Label Text="JEO! ANO BA?"
                    TextColor="#FFCC00"
                    FontSize="28"
                    FontAttributes="Bold"
@@ -67,13 +67,11 @@
                                     Text="Skip ⏭"
                                     TextColor="White"
                                     Clicked="OnSkipClicked"
-                                    BackgroundColor="#2A2A4E"
+                                    BackgroundColor="#0F0F2D"
                                     FontSize="13"
                                     FontAttributes="Bold"
-                                    CornerRadius="16"
-                                    Padding="14,6"
-                                    BorderColor="#FFCC00"
-                                    BorderWidth="2"
+                                    CornerRadius="20"
+                                    Padding="15,8"
                                     VerticalOptions="Start"/>
                         </Grid>
 
@@ -117,7 +115,7 @@
                                FontAttributes="Bold"
                                HorizontalTextAlignment="Center"/>
 
-                        <!-- Big Kahoot-style buzz-in grid -->
+                        <!-- Buzz-in Grid -->
                         <Grid x:Name="BuzzInGrid"
                               RowDefinitions="Auto, Auto"
                               ColumnDefinitions="*, *"
