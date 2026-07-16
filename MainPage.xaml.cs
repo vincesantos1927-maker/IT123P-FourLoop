@@ -13,12 +13,12 @@ public partial class MainPage : ContentPage {
     private readonly List<(Border chip, Label label)> _scoreLabels = new();
     private int? _autoLoadGameId;
     private readonly GameTimerService _timerService;
+    private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>();
     private readonly string _boardName;
 
     private static readonly string[] PlayerColors =
         { "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6" };
 
-    // 2. Updated the constructor to accept the 5th parameter (boardName)
     public MainPage(
         GameDatabaseService dbService,
         List<Player> players,
@@ -38,10 +38,16 @@ public partial class MainPage : ContentPage {
 
         WrapContentWithScoreFooter();
         BuildBuzzInGrid();
+        UpdateMusicButtonIcon();
+    }
 
-        // Note: If you have a Label in your MainPage.xaml to display the board name, 
-        // you can set it here, for example:
-        // YourBoardNameLabel.Text = _boardName;
+    private void UpdateMusicButtonIcon() {
+        MusicToggleButton.Text = _bgmService.IsEnabled ? "🔊" : "🔇";
+    }
+
+    private void OnMusicToggleClicked(object sender, EventArgs e) {
+        _bgmService.Toggle();
+        UpdateMusicButtonIcon();
     }
 
     private void WrapContentWithScoreFooter() {

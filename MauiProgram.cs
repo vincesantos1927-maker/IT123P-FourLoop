@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Plugin.Maui.Audio;
+using Microsoft.Extensions.Logging;
 using jeo_ano_ba.Services;
 using jeo_ano_ba.Views;
 using CommunityToolkit.Maui;
@@ -36,6 +37,7 @@ namespace jeo_ano_ba
 
             builder.Services.AddSingleton<GameDatabaseService>();
             builder.Services.AddSingleton<BgmService>();
+            builder.Services.AddSingleton(AudioManager.Current);
             builder.Services.AddTransient<PlayerSetupService>();
             builder.Services.AddTransient<SavedGamesService>();
             builder.Services.AddTransient<GameTimerService>();

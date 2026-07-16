@@ -12,12 +12,11 @@ public class MainMenuViewModel : BaseViewModel
 
     public MainMenuViewModel(
         GameDatabaseService dbService,
-        BgmService bgmService)
-    {
+        BgmService bgmService) {
         _dbService = dbService;
         _bgmService = bgmService;
-
         IsMusicEnabled = _bgmService.IsEnabled;
+        _ = _bgmService.InitializeAsync(); // fire-and-forget, loads + starts music
     }
 
     public bool IsMusicEnabled

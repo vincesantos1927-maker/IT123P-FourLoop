@@ -6,20 +6,31 @@
     <Grid RowDefinitions="Auto, *, Auto" RowSpacing="15" ColumnSpacing="15">
 
         <!-- HEADER -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="20,20,20,0">
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="20,20,20,0" ColumnSpacing="10">
             <Label Text="JEO! ANO BA?"
-                   TextColor="#FFCC00"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   VerticalOptions="Center"/>
+           TextColor="#FFCC00"
+           FontSize="28"
+           FontAttributes="Bold"
+           VerticalOptions="Center"/>
             <Button Grid.Column="1"
-                    Text="End Game"
-                    Clicked="OnEndGameClicked"
-                    BackgroundColor="#1E1E3F"
-                    TextColor="White"
-                    CornerRadius="20"
-                    FontAttributes="Bold"
-                    Padding="15,8"/>
+            x:Name="MusicToggleButton"
+            Text="🔊"
+            Clicked="OnMusicToggleClicked"
+            BackgroundColor="#1E1E3F"
+            TextColor="White"
+            CornerRadius="20"
+            FontSize="18"
+            WidthRequest="48"
+            HeightRequest="40"
+            Padding="0"/>
+            <Button Grid.Column="2"
+            Text="End Game"
+            Clicked="OnEndGameClicked"
+            BackgroundColor="#1E1E3F"
+            TextColor="White"
+            CornerRadius="20"
+            FontAttributes="Bold"
+            Padding="15,8"/>
         </Grid>
 
         <!-- BOARD -->
