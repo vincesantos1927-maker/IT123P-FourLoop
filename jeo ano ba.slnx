@@ -1,5 +1,4 @@
 <Solution>
   <Folder Name="/Solution Items/" />
-  <Project Path="../JeoAnoBa.Api/JeoAnoBa.Api/JeoAnoBa.Api.csproj" />
   <Project Path="jeo ano ba.csproj" />
 </Solution>
