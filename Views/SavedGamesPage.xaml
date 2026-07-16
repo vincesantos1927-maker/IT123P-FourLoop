@@ -9,14 +9,11 @@
 
     <Grid>
 
-        <!-- BACKGROUND -->
-
+        <!-- Background image -->
         <Image
             Source="bg3.png"
             Aspect="AspectFill"
             InputTransparent="True" />
-
-        <!-- MAIN CONTENT -->
 
         <Grid Padding="24,40,24,30">
 
@@ -25,15 +22,11 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-
-            <!-- ================= HEADER ================= -->
-
+            <!-- Header: close button + title -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*"
                 VerticalOptions="Center">
-
-                <!-- CLOSE BUTTON -->
 
                 <Border
                     x:Name="CloseButton"
@@ -47,10 +40,8 @@
                     </Border.StrokeShape>
 
                     <Border.GestureRecognizers>
-
                         <TapGestureRecognizer
                             Tapped="CloseTapped"/>
-
                     </Border.GestureRecognizers>
 
                     <Label
@@ -61,9 +52,6 @@
                         VerticalOptions="Center"/>
 
                 </Border>
-
-
-                <!-- TITLE -->
 
                 <Label
                     Grid.Column="1"
@@ -76,14 +64,9 @@
 
             </Grid>
 
-
-            <!-- ================= CONTENT ================= -->
-
             <Grid Grid.Row="1">
 
-
-                <!-- ================= EMPTY STATE ================= -->
-
+                <!-- Shown when there are no saved games; toggled in code-behind -->
                 <VerticalStackLayout
                     x:Name="EmptyState"
                     HorizontalOptions="Center"
@@ -108,14 +91,12 @@
 
                     </Border>
 
-
                     <Label
                         Text="No saved games yet"
                         FontSize="26"
                         FontAttributes="Bold"
                         HorizontalTextAlignment="Center"
                         TextColor="#AEB8C6"/>
-
 
                     <Label
                         Text="Tap + to create your first board"
@@ -125,9 +106,7 @@
 
                 </VerticalStackLayout>
 
-
-                <!-- ================= SAVED GAME LIST ================= -->
-
+                <!-- Shown when saved games exist; game rows injected into GamesContainer via code-behind -->
                 <ScrollView
                     x:Name="GamesScrollView"
                     IsVisible="False"
@@ -141,9 +120,7 @@
 
             </Grid>
 
-
-            <!-- ================= CREATE BUTTON ================= -->
-
+            <!-- Floating "+" button to create a new board -->
             <Border
                 x:Name="CreateButton"
                 WidthRequest="70"
@@ -156,30 +133,21 @@
                 Grid.RowSpan="2">
 
                 <Border.StrokeShape>
-
                     <RoundRectangle CornerRadius="35"/>
-
                 </Border.StrokeShape>
 
-
                 <Border.Shadow>
-
                     <Shadow
                         Brush="#FFD700"
                         Radius="22"
                         Offset="0,8"
                         Opacity="0.45"/>
-
                 </Border.Shadow>
 
-
                 <Border.GestureRecognizers>
-
                     <TapGestureRecognizer
                         Tapped="CreateTapped"/>
-
                 </Border.GestureRecognizers>
-
 
                 <Label
                     Text="+"

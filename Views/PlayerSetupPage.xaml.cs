@@ -12,6 +12,7 @@ public partial class PlayerSetupPage : ContentPage {
 
     private readonly List<Entry> _playerEntries = new();
 
+    // Assigned to players in order, up to 4 players
     private readonly Color[] _playerColors =
     {
         Color.FromArgb("#FF5252"), // Red
@@ -20,8 +21,7 @@ public partial class PlayerSetupPage : ContentPage {
         Color.FromArgb("#BA68C8")  // Purple
     };
 
-    public PlayerSetupPage(GameDatabaseService dbService, PlayerSetupViewModel viewModel, int gameId)
-    {
+    public PlayerSetupPage(GameDatabaseService dbService, PlayerSetupViewModel viewModel, int gameId) {
         InitializeComponent();
 
         _dbService = dbService;
@@ -36,10 +36,10 @@ public partial class PlayerSetupPage : ContentPage {
         BuildPlayers();
         LoadDefaultBoardName();
     }
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
+
+    // Rebuilds player rows when count changes, updates the timer label when it changes
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) {
+        switch (e.PropertyName) {
             case nameof(PlayerSetupViewModel.PlayerCount):
                 PlayerCountLabel.Text = _viewModel.PlayerCount.ToString();
                 BuildPlayers();
@@ -50,22 +50,13 @@ public partial class PlayerSetupPage : ContentPage {
         }
     }
 
-    // ===================================================
-    // LOAD DEFAULT BOARD NAME
-    // ===================================================
-
+    // Pre-fills the board name field with the board's saved/default name
     private async void LoadDefaultBoardName() {
-        // NOTE: Please check if GetAllGamesAsync() is the correct name 
-        // in your GameDatabaseService. Change it if you use a different name.
         await _viewModel.LoadDefaultBoardNameAsync(_gameId);
-
         BoardNameEntry.Text = _viewModel.BoardName;
     }
 
-    // ===================================================
-    // BUILD PLAYER LIST
-    // ===================================================
-
+    // Rebuilds the player name rows (color circle + text entry) to match PlayerCount
     private void BuildPlayers() {
         PlayersContainer.Children.Clear();
         _playerEntries.Clear();
@@ -123,58 +114,42 @@ public partial class PlayerSetupPage : ContentPage {
         }
     }
 
-    // ===================================================
-    // PLAYER COUNT
-    // ===================================================
-
-    private void PlayerMinusTapped(object sender, TappedEventArgs e)
-    {
+    // Player count stepper — actual clamping/limits live in the ViewModel
+    private void PlayerMinusTapped(object sender, TappedEventArgs e) {
         _viewModel.DecreasePlayerCount();
     }
-        
-    private void PlayerPlusTapped(object sender, TappedEventArgs e)
-    {
+
+    private void PlayerPlusTapped(object sender, TappedEventArgs e) {
         _viewModel.IncreasePlayerCount();
-        
     }
 
-    private void TimerMinusTapped(object sender, TappedEventArgs e)
-    {
+    // Timer stepper — actual clamping/limits live in the ViewModel
+    private void TimerMinusTapped(object sender, TappedEventArgs e) {
         _viewModel.DecreaseTimer();
-       
     }
 
-    private void TimerPlusTapped(object sender, TappedEventArgs e)
-    {
+    private void TimerPlusTapped(object sender, TappedEventArgs e) {
         _viewModel.IncreaseTimer();
-       
     }
 
-    // ===================================================
-    // CLOSE
-    // ===================================================
-
+    // Leaves without starting the game
     private async void CloseTapped(object sender, TappedEventArgs e) {
         await Navigation.PopAsync();
     }
 
-    // ===================================================
-    // START GAME
-    // ===================================================
-
+    // Validates board name, fills in default names for blank player entries,
+    // then starts the game with the configured players/timer/board
     private async void StartGameTapped(object sender, TappedEventArgs e) {
-        // 1. Check if the board name is blank
         string boardName = BoardNameEntry.Text?.Trim();
 
         if (string.IsNullOrWhiteSpace(boardName)) {
             await DisplayAlert("Wait", "Board Name cannot be empty.", "OK");
-            return; // This stops the game from starting
+            return;
         }
 
         var playerNames = new List<string>();
 
-        for (int i = 0; i < _playerEntries.Count; i++)
-        {
+        for (int i = 0; i < _playerEntries.Count; i++) {
             string name = string.IsNullOrWhiteSpace(_playerEntries[i].Text)
                 ? $"Player {i + 1}"
                 : _playerEntries[i].Text!.Trim();
@@ -184,7 +159,6 @@ public partial class PlayerSetupPage : ContentPage {
 
         var players = _viewModel.CreatePlayers(playerNames);
 
-        // 2. Go to MainPage with the new boardName string
         await Navigation.PushAsync(
             new MainPage(
                 _dbService,

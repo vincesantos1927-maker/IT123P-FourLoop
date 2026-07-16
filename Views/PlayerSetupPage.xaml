@@ -8,6 +8,7 @@
 
     <Grid>
 
+        <!-- Background image -->
         <Image
             Source="bg3.png"
             Aspect="AspectFill"
@@ -17,13 +18,20 @@
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <!-- Header -->
                 <RowDefinition Height="Auto"/>
+                <!-- Board name -->
                 <RowDefinition Height="Auto"/>
+                <!-- Players -->
                 <RowDefinition Height="Auto"/>
+                <!-- Timer -->
                 <RowDefinition Height="*"/>
+                <!-- Spacer -->
                 <RowDefinition Height="Auto"/>
+                <!-- Start button -->
             </Grid.RowDefinitions>
 
+            <!-- Header: close button + title -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*"
@@ -63,6 +71,7 @@
 
             </Grid>
 
+            <!-- Board name input -->
             <Border
                 Grid.Row="1"
                 Padding="18"
@@ -106,6 +115,7 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Player count stepper + dynamic player name fields -->
             <Border
                 Grid.Row="2"
                 Padding="18"
@@ -195,6 +205,7 @@
 
                     </Grid>
 
+                    <!-- Player name entries injected here in code-behind, one per player count -->
                     <VerticalStackLayout
                         x:Name="PlayersContainer"
                         Spacing="12"/>
@@ -203,6 +214,7 @@
 
             </Border>
 
+            <!-- Timer duration stepper -->
             <Border
                 Grid.Row="3"
                 Padding="18"
@@ -297,6 +309,7 @@
 
             </Border>
 
+            <!-- Pushes the start button to the bottom -->
             <Grid Grid.Row="4"/>
 
             <Border

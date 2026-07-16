@@ -5,156 +5,111 @@ using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba.Views;
 
-public partial class NewBoardPage : ContentPage
-{
+public partial class NewBoardPage : ContentPage {
     private readonly GameDatabaseService _dbService;
 
-    // null = creating a new board
-    // has value = editing an existing saved board
+    // Null = creating a new board, has value = editing an existing saved board
     private readonly int? _editingGameId;
     private readonly NewBoardViewModel _viewModel;
 
     private readonly int[] values = { 200, 400, 600, 800, 1000 };
 
     private Border? _selectedTile;
-
     private int _selectedRow;
     private int _selectedColumn;
 
-    // =============================
-    // BOARD DATA
-    // =============================
-
+    // Board data — one entry per category column, one label per clue cell
     private readonly Entry[] _categoryEntries = new Entry[6];
     private readonly Label[,] _cellLabels = new Label[6, 5];
 
-
-    // ============================================================
-    // CREATE MODE CONSTRUCTOR
-    // ============================================================
-
-    public NewBoardPage(GameDatabaseService dbService)
-    {
+    // Create mode: fresh empty board
+    public NewBoardPage(GameDatabaseService dbService) {
         InitializeComponent();
 
         _dbService = dbService;
         _editingGameId = null;
         _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
         BindingContext = _viewModel;
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;  
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         BuildBoard();
     }
 
-    // ============================================================
-    // EDIT MODE CONSTRUCTOR
-    // ============================================================
-
+    // Edit mode: loads an existing saved board after the page appears
     public NewBoardPage(
     GameDatabaseService dbService,
-    int gameId)
-    {
+    int gameId) {
         InitializeComponent();
 
         _dbService = dbService;
         _editingGameId = gameId;
         _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
         BindingContext = _viewModel;
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;   // ADD THIS LINE
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         BuildBoard();
 
         Loaded += NewBoardPageLoaded;
     }
 
-
-    // ============================================================
-    // BUILD BOARD UI
-    // ============================================================
-    // ============================================================
-    // BUILD BOARD UI
-    // ============================================================
-
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
+    // Keeps the "X/30 filled" counter in sync with the ViewModel
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) {
         if (e.PropertyName == nameof(NewBoardViewModel.ProgressText))
             ProgressLabel.Text = _viewModel.ProgressText;
     }
 
-    private void BuildBoard()
-    {
+    // Generates the 6x5 board (category row + 5 clue rows) entirely in code
+    private void BuildBoard() {
         BoardGrid.Children.Clear();
         BoardGrid.ColumnDefinitions.Clear();
         BoardGrid.RowDefinitions.Clear();
 
-        // Same spacing as MainPage
         BoardGrid.ColumnSpacing = 4;
         BoardGrid.RowSpacing = 4;
 
-        // 6 equal columns
-        for (int i = 0; i < 6; i++)
-        {
-            BoardGrid.ColumnDefinitions.Add(new ColumnDefinition
-            {
+        // 6 equal-width columns
+        for (int i = 0; i < 6; i++) {
+            BoardGrid.ColumnDefinitions.Add(new ColumnDefinition {
                 Width = GridLength.Star
             });
         }
 
-        // Category row
-        BoardGrid.RowDefinitions.Add(new RowDefinition
-        {
+        // Category header row (fixed height)
+        BoardGrid.RowDefinitions.Add(new RowDefinition {
             Height = 58
         });
 
-        // Five clue rows
-        for (int i = 0; i < 5; i++)
-        {
-            BoardGrid.RowDefinitions.Add(new RowDefinition
-            {
+        // 5 clue rows (equal height, fill remaining space)
+        for (int i = 0; i < 5; i++) {
+            BoardGrid.RowDefinitions.Add(new RowDefinition {
                 Height = GridLength.Star
             });
         }
 
-        // ===============================
-        // CATEGORY HEADERS
-        // ===============================
-
-        for (int col = 0; col < 6; col++)
-        {
-            var entry = new Entry
-            {
+        // Category header entries (row 0) — one editable text box per column
+        for (int col = 0; col < 6; col++) {
+            var entry = new Entry {
                 Placeholder = "Category",
                 PlaceholderColor = Color.FromArgb("#7E8DA9"),
                 TextColor = Color.FromArgb("#FFD700"),
-
                 BackgroundColor = Colors.Transparent,
-
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center,
-
                 FontSize = 10,
                 FontAttributes = FontAttributes.Bold,
-
                 Margin = 0
             };
 
             _categoryEntries[col] = entry;
 
-            var border = new Border
-            {
+            var border = new Border {
                 BackgroundColor = Color.FromArgb("#1E1E3F"),
-
                 Stroke = Color.FromArgb("#FFD700"),
                 StrokeThickness = 1,
-
                 Padding = 4,
-
                 HeightRequest = 54,
-
-                StrokeShape = new RoundRectangle
-                {
+                StrokeShape = new RoundRectangle {
                     CornerRadius = new CornerRadius(10)
                 },
-
                 Content = entry
             };
 
@@ -164,82 +119,59 @@ public partial class NewBoardPage : ContentPage
             BoardGrid.Children.Add(border);
         }
 
-        // ===============================
-        // CLUE CELLS
-        // ===============================
-
-        for (int row = 1; row <= 5; row++)
-        {
-            for (int col = 0; col < 6; col++)
-            {
+        // Clue cells (rows 1-5) — each tile shows its dollar value until filled,
+        // and opens the question/answer popup when tapped
+        for (int row = 1; row <= 5; row++) {
+            for (int col = 0; col < 6; col++) {
                 int tileRow = row - 1;
                 int tileColumn = col;
                 int tileValue = values[tileRow];
 
-                var label = new Label
-                {
+                var label = new Label {
                     Text = $"${tileValue}",
-
                     TextColor = Color.FromArgb("#FFD700"),
-
                     FontSize = 16,
-
                     FontAttributes = FontAttributes.Bold,
-
                     HorizontalOptions = LayoutOptions.Center,
-
                     VerticalOptions = LayoutOptions.Center,
-
                     HorizontalTextAlignment = TextAlignment.Center,
-
                     VerticalTextAlignment = TextAlignment.Center
                 };
 
                 _cellLabels[tileColumn, tileRow] = label;
 
-                var tile = new Border
-                {
+                var tile = new Border {
                     BackgroundColor = Color.FromArgb("#284C84"),
-
                     Stroke = Color.FromArgb("#375D99"),
-
                     StrokeThickness = 1,
-
                     Padding = 2,
-
-                    StrokeShape = new RoundRectangle
-                    {
+                    StrokeShape = new RoundRectangle {
                         CornerRadius = new CornerRadius(10)
                     },
-
                     Content = label
                 };
 
                 var tap = new TapGestureRecognizer();
 
-                tap.Tapped += (sender, args) =>
-                {
-                    if (_selectedTile != null)
-                    {
+                tap.Tapped += (sender, args) => {
+                    // Deselect the previously selected tile (reset its border)
+                    if (_selectedTile != null) {
                         _selectedTile.StrokeThickness = 1;
                         _selectedTile.Stroke = Color.FromArgb("#FFCC00");
                     }
 
                     _selectedRow = tileRow;
                     _selectedColumn = tileColumn;
-
                     _selectedTile = tile;
 
+                    // Highlight the newly selected tile
                     _selectedTile.StrokeThickness = 3;
                     _selectedTile.Stroke = Colors.White;
 
+                    // Pre-fill popup with any existing question/answer for this cell
                     PopupValueLabel.Text = $"${tileValue}";
-
-                    QuestionEditor.Text =
-                        _viewModel.GetQuestion(tileColumn, tileRow);
-
-                    AnswerEntry.Text =
-                        _viewModel.GetAnswer(tileColumn, tileRow);
+                    QuestionEditor.Text = _viewModel.GetQuestion(tileColumn, tileRow);
+                    AnswerEntry.Text = _viewModel.GetAnswer(tileColumn, tileRow);
 
                     PopupOverlay.IsVisible = true;
                 };
@@ -254,51 +186,38 @@ public partial class NewBoardPage : ContentPage
         }
     }
 
-
-    // ============================================================
-    // LOAD EXISTING SAVED BOARD
-    // ============================================================
-
+    // Fires once after the page loads, then unsubscribes itself
     private async void NewBoardPageLoaded(
         object? sender,
-        EventArgs e)
-    {
+        EventArgs e) {
         Loaded -= NewBoardPageLoaded;
-
         await LoadExistingBoardAsync();
     }
 
-
-    private async Task LoadExistingBoardAsync()
-    {
+    // Pulls saved categories/clues from the ViewModel into the UI (edit mode only)
+    private async Task LoadExistingBoardAsync() {
         if (!_editingGameId.HasValue)
             return;
 
-        try
-        {
+        try {
             await _viewModel.LoadExistingBoardAsync();
 
-            for (int column = 0; column < 6; column++)
-            {
-                _categoryEntries[column].Text =
-                    _viewModel.GetCategoryName(column);
+            for (int column = 0; column < 6; column++) {
+                _categoryEntries[column].Text = _viewModel.GetCategoryName(column);
 
-                for (int row = 0; row < 5; row++)
-                {
+                for (int row = 0; row < 5; row++) {
                     if (!_viewModel.IsFilled(column, row))
                         continue;
 
+                    // Mark already-filled cells with a checkmark instead of the dollar value
                     Label cellLabel = _cellLabels[column, row];
-
                     cellLabel.Text = "✓";
                     cellLabel.TextColor = Color.FromArgb("#FFD700");
                     cellLabel.FontSize = 24;
                 }
             }
-
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             await DisplayAlertAsync(
                 "Load Failed",
                 ex.Message,
@@ -308,52 +227,28 @@ public partial class NewBoardPage : ContentPage
         }
     }
 
-
-    // ============================================================
-    // CLOSE POPUP
-    // ============================================================
-
+    // Closes the popup without saving, resets the tile's border
     private void ClosePopupTapped(
         object sender,
-        TappedEventArgs e)
-    {
-        PopupOverlay.IsVisible =
-            false;
+        TappedEventArgs e) {
+        PopupOverlay.IsVisible = false;
 
-
-        if (_selectedTile != null)
-        {
-            _selectedTile.StrokeThickness =
-                1;
-
-            _selectedTile.Stroke =
-                Color.FromArgb("#375D99");
-
-            _selectedTile =
-                null;
+        if (_selectedTile != null) {
+            _selectedTile.StrokeThickness = 1;
+            _selectedTile.Stroke = Color.FromArgb("#375D99");
+            _selectedTile = null;
         }
     }
 
-
-    // ============================================================
-    // SAVE CLUE IN MEMORY
-    // ============================================================
-
+    // Validates and stores the question/answer for the selected cell (in memory, not DB yet)
     private async void SaveQuestionTapped(
     object sender,
-    TappedEventArgs e)
-    {
-        string question =
-            QuestionEditor.Text?.Trim()
-            ?? string.Empty;
-
-        string answer =
-            AnswerEntry.Text?.Trim()
-            ?? string.Empty;
+    TappedEventArgs e) {
+        string question = QuestionEditor.Text?.Trim() ?? string.Empty;
+        string answer = AnswerEntry.Text?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(question) ||
-            string.IsNullOrWhiteSpace(answer))
-        {
+            string.IsNullOrWhiteSpace(answer)) {
             await DisplayAlertAsync(
                 "Missing Information",
                 "Please enter both the question and the correct answer.",
@@ -368,48 +263,32 @@ public partial class NewBoardPage : ContentPage
             question,
             answer);
 
-        Label selectedLabel =
-            _cellLabels[
-                _selectedColumn,
-                _selectedRow];
-
+        // Mark the cell as filled
+        Label selectedLabel = _cellLabels[_selectedColumn, _selectedRow];
         selectedLabel.Text = "✓";
         selectedLabel.TextColor = Color.FromArgb("#FFD700");
         selectedLabel.FontSize = 24;
 
         PopupOverlay.IsVisible = false;
 
-        if (_selectedTile != null)
-        {
+        if (_selectedTile != null) {
             _selectedTile.StrokeThickness = 1;
             _selectedTile.Stroke = Color.FromArgb("#375D99");
             _selectedTile = null;
         }
-
     }
-    // ============================================================
-    // SAVE BOARD
-    // ============================================================
 
-    private async Task<int?> SaveBoardAsync()
-    {
-        try
-        {
-            for (int column = 0; column < 6; column++)
-            {
-                string categoryName =
-                    _categoryEntries[column]
-                        .Text?
-                        .Trim()
-                    ?? string.Empty;
-
+    // Pushes category names into the ViewModel, then persists the whole board to the DB
+    private async Task<int?> SaveBoardAsync() {
+        try {
+            for (int column = 0; column < 6; column++) {
+                string categoryName = _categoryEntries[column].Text?.Trim() ?? string.Empty;
                 _viewModel.SetCategoryName(column, categoryName);
             }
 
             return await _viewModel.SaveBoardAsync();
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             await DisplayAlertAsync(
                 "Save Failed",
                 ex.Message,
@@ -419,66 +298,42 @@ public partial class NewBoardPage : ContentPage
         }
     }
 
-
-    // ============================================================
-    // CLOSE PAGE
-    // ============================================================
-
+    // Leaves without saving
     private async void CloseTapped(
         object sender,
-        TappedEventArgs e)
-    {
+        TappedEventArgs e) {
         await Navigation.PopAsync();
     }
 
-
-    // ============================================================
-    // SAVE ONLY
-    // ============================================================
-
+    // Saves the board and returns to the previous page
     private async void SaveOnlyTapped(
         object sender,
-        TappedEventArgs e)
-    {
-        int? gameId =
-            await SaveBoardAsync();
-
+        TappedEventArgs e) {
+        int? gameId = await SaveBoardAsync();
 
         if (gameId == null)
             return;
 
-
-        string message =
-            _editingGameId.HasValue
-                ? "Your saved board was updated successfully."
-                : "Your custom board was saved successfully.";
-
+        string message = _editingGameId.HasValue
+            ? "Your saved board was updated successfully."
+            : "Your custom board was saved successfully.";
 
         await DisplayAlertAsync(
             "Saved",
             message,
             "OK");
 
-
         await Navigation.PopAsync();
     }
 
-
-    // ============================================================
-    // SAVE & START
-    // ============================================================
-
+    // Saves the board and moves straight into player setup
     private async void SaveStartTapped(
         object sender,
-        TappedEventArgs e)
-    {
-        int? gameId =
-            await SaveBoardAsync();
-
+        TappedEventArgs e) {
+        int? gameId = await SaveBoardAsync();
 
         if (gameId == null)
             return;
-
 
         await Navigation.PushAsync(
             new PlayerSetupPage(

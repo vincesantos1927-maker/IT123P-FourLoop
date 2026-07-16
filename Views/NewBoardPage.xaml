@@ -9,29 +9,22 @@
 
     <Grid>
 
-        <!-- Background -->
-
+        <!-- Background image -->
         <Image
             Source="bg3.png"
             Aspect="AspectFill"
             InputTransparent="True"/>
 
         <!-- Page Layout -->
-
         <Grid
             Padding="18,24,18,20"
             RowDefinitions="Auto,*,Auto">
 
-            <!-- ================================= -->
-            <!-- HEADER -->
-            <!-- ================================= -->
-
+            <!-- Header: close button, title, fill counter -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*,Auto"
                 Margin="0,10,0,16">
-
-                <!-- Close Button -->
 
                 <Border
                     x:Name="CloseButton"
@@ -58,8 +51,6 @@
 
                 </Border>
 
-                <!-- Title -->
-
                 <Label
                     Grid.Column="1"
                     Margin="16,0,0,0"
@@ -69,8 +60,7 @@
                     Text="New Board"
                     TextColor="White"/>
 
-                <!-- Counter -->
-
+                <!-- Updated in code-behind as cells get filled -->
                 <Label
                     x:Name="ProgressLabel"
                     Grid.Column="2"
@@ -82,38 +72,22 @@
 
             </Grid>
 
-            <!-- ================================= -->
-            <!-- BOARD -->
-            <!-- ================================= -->
-
-            <!-- BOARD -->
-
+            <!-- Board: cells are generated dynamically into BoardGrid via code-behind -->
             <Grid Grid.Row="1">
 
-                <!-- Horizontal Scroll -->
-
-                <Grid Grid.Row="1">
-
-                    <Grid
-                        x:Name="BoardGrid"
-                        Margin="0,4,0,0"
-                        HorizontalOptions="Fill"
-                        VerticalOptions="Fill"/>
-
-                </Grid>
+                <Grid
+                    x:Name="BoardGrid"
+                    Margin="0,4,0,0"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Fill"/>
 
             </Grid>
 
-            <!-- ================================= -->
-            <!-- FOOTER -->
-            <!-- ================================= -->
-
+            <!-- Footer: save without starting, or save and continue to next step -->
             <Grid
                 Grid.Row="2"
                 ColumnDefinitions="*,20,*"
                 Margin="0,18,0,0">
-
-                <!-- Save Only -->
 
                 <Border
                     x:Name="SaveOnlyButton"
@@ -142,8 +116,6 @@
 
                 </Border>
 
-                <!-- Save & Start -->
-
                 <Border
                     x:Name="SaveStartButton"
                     Grid.Column="2"
@@ -156,13 +128,11 @@
                     </Border.StrokeShape>
 
                     <Border.Shadow>
-
                         <Shadow
                             Brush="#FFD700"
                             Radius="18"
                             Offset="0,6"
                             Opacity="0.35"/>
-
                     </Border.Shadow>
 
                     <Border.GestureRecognizers>
@@ -183,10 +153,8 @@
             </Grid>
 
         </Grid>
-        <!-- ====================================== -->
-        <!-- QUESTION POPUP -->
-        <!-- ====================================== -->
 
+        <!-- Question/answer entry popup, shown when a board cell is tapped -->
         <Grid
             x:Name="PopupOverlay"
             IsVisible="False"
@@ -208,8 +176,7 @@
 
                     <VerticalStackLayout Spacing="14">
 
-                        <!-- Header -->
-
+                        <!-- Point value being edited + close (X) -->
                         <Grid ColumnDefinitions="*,Auto">
 
                             <Label
@@ -237,8 +204,6 @@
 
                         </Grid>
 
-                        <!-- QUESTION -->
-
                         <Label
                             Text="QUESTION"
                             FontAttributes="Bold"
@@ -265,8 +230,6 @@
                                 AutoSize="TextChanges"/>
                         </Border>
 
-                        <!-- ANSWER -->
-
                         <Label
                             Text="ANSWER"
                             FontAttributes="Bold"
@@ -291,13 +254,10 @@
                                 TextColor="White"/>
                         </Border>
 
-                        <!-- Buttons -->
-
+                        <!-- Cancel discards, Save commits this cell's Q&A -->
                         <Grid
                             ColumnDefinitions="*,18,*"
                             Margin="0,10,0,0">
-
-                            <!-- Cancel -->
 
                             <Border
                                 Grid.Column="0"
@@ -324,8 +284,6 @@
                                     TextColor="White"/>
 
                             </Border>
-
-                            <!-- Save -->
 
                             <Border
                                 Grid.Column="2"

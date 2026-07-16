@@ -5,25 +5,31 @@ using jeo_ano_ba.Models;
 namespace jeo_ano_ba.Views;
 
 public class CategorySelectorPopup : Popup {
+    // Store all categories and selected categories
     private readonly List<CategoryDb> _allCategories;
     private readonly List<CategoryDb> _selectedCategories = new();
+
+    // Save the final selected category names
     public List<string>? FinalSelection { get; private set; }
 
+    // UI controls
     private readonly Label _countBadgeLabel;
     private readonly Button _continueButton;
     private readonly CollectionView _collectionView;
     private readonly SearchBar _searchBar;
 
+    // App theme colors
     private static readonly Color NavyUnselected = Color.FromArgb("#1E3A5F");
     private static readonly Color OliveSelected = Color.FromArgb("#2E2E14");
     private static readonly Color GoldAccent = Color.FromArgb("#FFCC00");
 
     public CategorySelectorPopup(List<CategoryDb> availableCategories) {
+        // Save available categories
         _allCategories = availableCategories;
 
         Color = Colors.Transparent;
 
-        // ----- HEADER: X close button, title, X/6 badge -----
+        // Create popup header
         var closeButton = new Button {
             Text = "✕",
             BackgroundColor = Color.FromArgb("#2A2A4E"),
@@ -44,6 +50,7 @@ public class CategorySelectorPopup : Popup {
             VerticalOptions = LayoutOptions.Center
         };
 
+        // Show selected category count
         _countBadgeLabel = new Label {
             Text = "0/6",
             FontSize = 14,
@@ -52,6 +59,7 @@ public class CategorySelectorPopup : Popup {
             VerticalOptions = LayoutOptions.Center,
             HorizontalTextAlignment = TextAlignment.Center
         };
+
         var countBadge = new Border {
             BackgroundColor = Color.FromArgb("#1E3A5F"),
             Padding = new Thickness(12, 4),
@@ -72,7 +80,7 @@ public class CategorySelectorPopup : Popup {
         headerGrid.Add(titleLabel, 1, 0);
         headerGrid.Add(countBadge, 2, 0);
 
-        // ----- SEARCH BAR -----
+        // Create search bar
         _searchBar = new SearchBar {
             Placeholder = "Search categories...",
             BackgroundColor = Color.FromArgb("#1E3A5F"),
@@ -81,7 +89,7 @@ public class CategorySelectorPopup : Popup {
         };
         _searchBar.TextChanged += OnSearchTextChanged;
 
-        // ----- CATEGORY LIST -----
+        // Display category list
         _collectionView = new CollectionView {
             SelectionMode = SelectionMode.None,
             ItemsSource = _allCategories,
@@ -89,6 +97,8 @@ public class CategorySelectorPopup : Popup {
                 ItemSpacing = 3
             },
             ItemTemplate = new DataTemplate(() => {
+
+                // Selection check icon
                 var checkCircleLabel = new Label {
                     Text = "✓",
                     TextColor = Color.FromArgb("#0F0F2D"),
@@ -116,9 +126,13 @@ public class CategorySelectorPopup : Popup {
                 nameLabel.SetBinding(Label.TextProperty, "Name");
 
                 var rowGrid = new Grid {
-                    ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                    ColumnDefinitions = {
+                        new ColumnDefinition(GridLength.Star),
+                        new ColumnDefinition(GridLength.Auto)
+                    },
                     Padding = new Thickness(16, 14)
                 };
+
                 rowGrid.Add(nameLabel, 0, 0);
                 rowGrid.Add(checkCircle, 1, 0);
 
@@ -131,6 +145,7 @@ public class CategorySelectorPopup : Popup {
                     Margin = new Thickness(0)
                 };
 
+                // Handle category selection
                 var tapGesture = new TapGestureRecognizer();
                 tapGesture.Tapped += (s, e) => {
                     if (pillBorder.BindingContext is CategoryDb category)
@@ -142,7 +157,7 @@ public class CategorySelectorPopup : Popup {
             })
         };
 
-        // ----- CONTINUE BUTTON -----
+        // Continue button
         _continueButton = new Button {
             Text = "Continue — 0/6 selected",
             BackgroundColor = Color.FromArgb("#5C5A1E"),
@@ -154,7 +169,7 @@ public class CategorySelectorPopup : Popup {
         };
         _continueButton.Clicked += OnGenerateClicked;
 
-        // ----- MAIN LAYOUT -----
+        // Build popup layout
         var mainGrid = new Grid {
             Padding = 20,
             RowSpacing = 14,
@@ -163,10 +178,10 @@ public class CategorySelectorPopup : Popup {
             BackgroundColor = Color.FromArgb("#0F0F2D"),
             RowDefinitions =
             {
-                new RowDefinition(GridLength.Auto), // header
-                new RowDefinition(GridLength.Auto), // search
-                new RowDefinition(GridLength.Star),  // list
-                new RowDefinition(GridLength.Auto)   // continue button
+                new RowDefinition(GridLength.Auto),
+                new RowDefinition(GridLength.Auto),
+                new RowDefinition(GridLength.Star),
+                new RowDefinition(GridLength.Auto)
             }
         };
 
@@ -175,6 +190,7 @@ public class CategorySelectorPopup : Popup {
         mainGrid.Add(_collectionView, 0, 2);
         mainGrid.Add(_continueButton, 0, 3);
 
+        // Display popup content
         Content = new Border {
             BackgroundColor = Color.FromArgb("#0F0F2D"),
             Stroke = GoldAccent,
@@ -184,11 +200,13 @@ public class CategorySelectorPopup : Popup {
         };
     }
 
+    // Select or remove a category
     private void ToggleCategory(CategoryDb category, Border pillBorder, Border checkCircle) {
         bool isCurrentlySelected = _selectedCategories.Contains(category);
 
+        // Limit selection to six categories
         if (!isCurrentlySelected && _selectedCategories.Count >= 6)
-            return; // already at max, ignore tap
+            return;
 
         if (isCurrentlySelected) {
             _selectedCategories.Remove(category);
@@ -203,6 +221,7 @@ public class CategorySelectorPopup : Popup {
             checkCircle.Opacity = 1;
         }
 
+        // Update selection count and button state
         _countBadgeLabel.Text = $"{_selectedCategories.Count}/6";
         _continueButton.Text = $"Continue — {_selectedCategories.Count}/6 selected";
         _continueButton.IsEnabled = (_selectedCategories.Count == 6);
@@ -214,6 +233,7 @@ public class CategorySelectorPopup : Popup {
             : Colors.White;
     }
 
+    // Filter categories using the search text
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e) {
         string query = e.NewTextValue?.Trim().ToLower() ?? "";
 
@@ -222,6 +242,7 @@ public class CategorySelectorPopup : Popup {
             : _allCategories.Where(c => c.Name.ToLower().Contains(query)).ToList();
     }
 
+    // Return selected categories
     private void OnGenerateClicked(object? sender, EventArgs e) {
         if (_selectedCategories.Count == 6) {
             FinalSelection = _selectedCategories.Select(c => c.Name).ToList();
