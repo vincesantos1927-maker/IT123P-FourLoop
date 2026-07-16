@@ -14,19 +14,21 @@ namespace jeo_ano_ba
             var builder = MauiApp.CreateBuilder();
 
             // ============================================
-            // PLATFORM-SPECIFIC BASE ADDRESS (Port 60449)
+            // API CONFIGURATION
             // ============================================
             string baseAddress = DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2:5050/"   // Android emulator mapping to host loopback CHANGE TO YOUR LOCAL HOST
-                : "http://localhost:5050/"; // Windows / iOS mapping directly to localhost CHANGE TO YOUR LOCAL HOST
+                ? "http://10.0.2.2:60451/"   // android emulator 
+                : "http://localhost:60451/"; // windows / iOS 
 
-            // Register single HttpClient instance using the designated address
+            // register the shared HttpClient 
             builder.Services.AddSingleton(new HttpClient
             {
                 BaseAddress = new Uri(baseAddress)
             });
 
-            // Register Framework & Core Utilities
+            // ============================================
+            // APP CONFIGURATION
+            // ===========================================
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
@@ -41,7 +43,7 @@ namespace jeo_ano_ba
 #endif
 
             // ============================================
-            // SERVICES (Clean & Single Instance)
+            // SERVICES 
             // ============================================
             builder.Services.AddSingleton<GameDatabaseService>();
             builder.Services.AddSingleton<BgmService>();

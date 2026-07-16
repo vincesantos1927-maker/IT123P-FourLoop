@@ -7,19 +7,21 @@ using jeo_ano_ba.Views;
 namespace jeo_ano_ba;
 
 public partial class MainPage : ContentPage {
-    private readonly GameDatabaseService _dbService;
-    private readonly GameBoardViewModel _viewModel;
-    private readonly List<Button> _buzzButtons = new();
+    private readonly GameDatabaseService _dbService; // talks to the database for the categories, clues, and saved games
+    private readonly GameBoardViewModel _viewModel; // lets the VM remember the current state of a game 
+    private readonly List<Button> _buzzButtons = new(); 
     private readonly List<(Border chip, Label label)> _scoreLabels = new();
     private int? _autoLoadGameId;
-    private readonly GameTimerService _timerService;
-    private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>();
+    private readonly GameTimerService _timerService; // timerservice for the countdown
+    private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>(); // bgm in bgmservice 
     private readonly string _boardName;
 
+    // colors of players are reused in buzzers, scoreboard, and leaderboards
     private static readonly string[] PlayerColors =
-        { "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6" };
+        { "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6" }; 
 
-    public MainPage(
+    // initializes the gameplay page, VM, services, and UI
+    public MainPage( 
         GameDatabaseService dbService,
         List<Player> players,
         int? autoLoadGameId = null,
@@ -32,25 +34,28 @@ public partial class MainPage : ContentPage {
         _autoLoadGameId = autoLoadGameId;
         _boardName = boardName;
         _timerService = timerService ?? new GameTimerService();
-        BindingContext = _viewModel;
+        BindingContext = _viewModel; 
         _timerService.Tick += OnTimerTick;
         _timerService.TimedOut += OnTimerTimedOut;
 
-        WrapContentWithScoreFooter();
+        WrapContentWithScoreFooter(); 
         BuildBuzzInGrid();
         UpdateMusicButtonIcon();
-    }
+    } 
 
+    // updates the bgm icon based on the current BGM state
     private void UpdateMusicButtonIcon() {
         MusicToggleButton.Text = _bgmService.IsEnabled ? "🔊" : "🔇";
     }
 
+    // toggles the BGM state and updates the icon when the music button is clicked
     private void OnMusicToggleClicked(object sender, EventArgs e) {
         _bgmService.Toggle();
         UpdateMusicButtonIcon();
     }
 
-    private void WrapContentWithScoreFooter() {
+    // this method wraps the existing gameplay content inside a new layout and adds a dynamic score footer at the bottom of page
+    private void WrapContentWithScoreFooter() { 
         var originalContent = Content;
 
         var wrapper = new Grid {
@@ -67,24 +72,30 @@ public partial class MainPage : ContentPage {
         Content = wrapper;
     }
 
+    // this returns a formatted string rep of a player's score by forwarding it to VM
     private static string FormatScore(int score) => GameBoardViewModel.FormatScore(score);
 
-    private Grid BuildScoreFooter() {
-        _scoreLabels.Clear();
+    // this builds the score footer that shows each player's name and score in a colored card
+    private Grid BuildScoreFooter() { 
+        _scoreLabels.Clear(); // clears score labels every time the method runs
 
+        // container that holds the player score cards
         var bar = new Grid {
             Padding = new Thickness(10),
             ColumnSpacing = 8,
             BackgroundColor = Color.FromArgb("#0F0F2D")
         };
 
+        // creates one column for each player
         for (int i = 0; i < _viewModel.Players.Count; i++)
             bar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
+        // iterates per player
         for (int i = 0; i < _viewModel.Players.Count; i++) {
-            var player = _viewModel.Players[i];
+            var player = _viewModel.Players[i]; 
             string color = PlayerColors[i % PlayerColors.Length];
 
+            // creates the colored score card
             var chip = new Border {
                 BackgroundColor = Color.FromArgb(color),
                 Padding = new Thickness(6),
@@ -92,6 +103,7 @@ public partial class MainPage : ContentPage {
                 StrokeShape = new RoundRectangle { CornerRadius = 12 }
             };
 
+            // text inside the card
             var label = new Label {
                 Text = $"{player.Name}\n{FormatScore(player.Score)}",
                 TextColor = Colors.White,
@@ -100,7 +112,7 @@ public partial class MainPage : ContentPage {
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
             };
-            chip.Content = label;
+            chip.Content = label; // puts label inside the border
 
             _scoreLabels.Add((chip, label));
             Grid.SetColumn(chip, i);
@@ -110,10 +122,12 @@ public partial class MainPage : ContentPage {
         return bar;
     }
 
+    // this builds the buzz-in grid that shows each player's buzzer button
     private void BuildBuzzInGrid() {
-        _buzzButtons.Clear();
+        _buzzButtons.Clear(); // clears the list of buzz buttons every time the method runs
         BuzzInGrid.Children.Clear();
 
+        // creates columns for the buzz-in grid
         for (int i = 0; i < _viewModel.Players.Count; i++) {
             var player = _viewModel.Players[i];
             string color = PlayerColors[i % PlayerColors.Length];
@@ -141,8 +155,10 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // handles the event when a player buzzes in, stops the timer, and starts the countdown for answering
     private async void OnPlayerBuzzed(int index)
     {
+        // ignore if no clue is selected or another player is already answering
         if (_viewModel.CurrentClue == null) return;
         if (_viewModel.ActivePlayerIndex != null) return;
 
@@ -158,6 +174,7 @@ public partial class MainPage : ContentPage {
             TimerBar.Progress = 1;
             TimerLabel.Text = $"{_viewModel.TimerSeconds}s";
 
+            // player who buzzed in is higlighted and other player's buzzers are disabled
             for (int i = 0; i < _buzzButtons.Count; i++)
             {
                 bool isActive = i == index;
@@ -170,6 +187,7 @@ public partial class MainPage : ContentPage {
         await _timerService.StartAsync(_viewModel.TimerSeconds);
     }
 
+    // this builds the game board using the loaded categs and clues
     private void PopulateBoard(List<CategoryDb> categories) {
 
         ProxyBoardGrid.Children.Clear();
@@ -230,22 +248,27 @@ public partial class MainPage : ContentPage {
         }
     }
 
+
+    // refreshes the game board 
     private void RefreshBoard()
     {
         if (_viewModel.Categories != null)
             PopulateBoard(_viewModel.Categories);
     }
 
+    // resets the buzzers and score labels to their initial state for the next clue
     private void ResetBuzzers() {
 
         WhoKnowsLabel.IsVisible = true;
 
+        // resets the buzzers to their initial state
         for (int i = 0; i < _buzzButtons.Count; i++) {
             _buzzButtons[i].IsEnabled = true;
             _buzzButtons[i].Opacity = 1.0;
             _buzzButtons[i].Text = _viewModel.Players[i].Name;
         }
 
+        // updates the score labels to reflect the current scores and highlights the last player who picked a clue
         for (int i = 0; i < _scoreLabels.Count; i++) {
             _scoreLabels[i].label.Text = $"{_viewModel.Players[i].Name}\n{GameBoardViewModel.FormatScore(_viewModel.Players[i].Score)}";
             _scoreLabels[i].chip.StrokeThickness = (_viewModel.LastPickerIndex.HasValue && i == _viewModel.LastPickerIndex.Value) ? 3 : 0;
@@ -255,20 +278,24 @@ public partial class MainPage : ContentPage {
         SkipButton.IsVisible = true;
     }
 
+    // runs every time the gameplay page becomes visible
     protected override async void OnAppearing() {
         base.OnAppearing();
         await RefreshGameListMenuAsync();
 
+        // automatically load the selected game when opening the page
         if (_autoLoadGameId.HasValue)
         {
-            // Update the game's name with the user-entered board name (if provided)
+            // save the board name if provided
             if (!string.IsNullOrWhiteSpace(_boardName))
             {
                 await _dbService.UpdateGameNameAsync(_autoLoadGameId.Value, _boardName);
             }
 
+            // load selected game into VM
             await _viewModel.LoadGameAsync(_autoLoadGameId.Value);
 
+            // build game board after loading categs
             if (_viewModel.Categories != null)
                 PopulateBoard(_viewModel.Categories);
 
@@ -276,10 +303,12 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // refreshes the list of saved games from the database
     private async Task RefreshGameListMenuAsync() {
         GamesListView.ItemsSource = await _dbService.GetAllGamesAsync();
     }
 
+    // creates a new custom game by prompting for a title, selecting categories, and building the game in the database
     private async void OnCreateCustomGameClicked(object sender, EventArgs e) {
         try {
             string title = await DisplayPromptAsync("New Game", "Enter a name for your custom match:", initialValue: "Custom Game");
@@ -307,6 +336,7 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // loads the selected game from the database and populates the game board
     private async void OnGameSelected(object sender, SelectedItemChangedEventArgs e) {
         if (e.SelectedItem is GameDb selectedGame)
         {
@@ -317,6 +347,7 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // handles the event when a clue tile is clicked, shows the clue modal, and resets buzzers
     private void OnClueTileClicked(object sender, EventArgs e) {
         if (sender is Button { CommandParameter: ClueDb clue }) {
             _viewModel.SelectClue(clue); ;
@@ -337,6 +368,7 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // handles the event when the "Show Answer" button is clicked, stops the timer, and displays the answer modal
     private void OnShowAnswerClicked(object sender, EventArgs e) {
         if (_viewModel.CurrentClue == null) return;
 
@@ -357,6 +389,7 @@ public partial class MainPage : ContentPage {
         }
     }
 
+    // handles the event when the "Skip" button is clicked, stops the timer, skips the current clue, and refreshes the board
     private async void OnSkipClicked(object sender, EventArgs e) {
         if (_viewModel.CurrentClue == null) return;
         if (_viewModel.ActivePlayerIndex != null) return;
@@ -370,25 +403,30 @@ public partial class MainPage : ContentPage {
         CheckGameComplete();
     }
 
+    // marks answer as correct
     private async void OnCorrectClicked(object sender, EventArgs e) {
         await ResolveClueAsync(isCorrect: true);
     }
 
+    // marks answer as incorrect
     private async void OnIncorrectClicked(object sender, EventArgs e) {
         await ResolveClueAsync(isCorrect: false);
     }
 
+    // finishes the current clue and prepares the next turn
     private async void OnProceedClicked(object sender, EventArgs e) {
         if(_viewModel.CurrentClue == null) return;
 
         await _viewModel.FinishCurrentClueAsync();
 
+        // reset gameplay UI and refresh the board
         EvaluationModal.IsVisible = false;
         ResetBuzzers();
         RefreshBoard();
         CheckGameComplete();
     }
 
+    // resolves current clue based on whether the answer is correct
     private async Task ResolveClueAsync(bool isCorrect) {
         if (_viewModel.CurrentClue == null) return;
         if (_viewModel.ActivePlayerIndex == null) {
@@ -396,18 +434,22 @@ public partial class MainPage : ContentPage {
             return;
         }
 
+        // update the clue result and player score
         await _viewModel.ResolveCurrentClueAsync(isCorrect);
 
+        // reset the gameplay UI and refresh the board
         EvaluationModal.IsVisible = false;
         ResetBuzzers();
         RefreshBoard();
         CheckGameComplete();
     }
 
+    // ends the game and returns to main menu
     private async void OnEndGameClicked(object sender, EventArgs e) {
         await Navigation.PopToRootAsync();
     }
 
+    // updates the coundown timer and progress bar
     private void OnTimerTick(int seconds) {
         MainThread.BeginInvokeOnMainThread(() => {
             TimerLabel.Text = $"{seconds}s";
@@ -415,14 +457,19 @@ public partial class MainPage : ContentPage {
         });
     }
 
+    // handles the event when the timer runs out, applies a penalty, and shows the correct answer
     private async void OnTimerTimedOut() {
+
+        // ignore if no clue is active or no player has buzzed in
         if (_viewModel.CurrentClue == null || _viewModel.ActivePlayerIndex == null)
             return;
 
+        // apply timeout penalty to the active player
         string answer = _viewModel.CurrentClue.Answer;
         await _viewModel.ApplyTimeoutPenaltyAsync();
 
         MainThread.BeginInvokeOnMainThread(() => {
+            // reveal the correct answer and update the gameplay controls
             ModalAnswerLabel.Text = answer;
             ModalAnswerLabel.IsVisible = true;
 
@@ -434,21 +481,26 @@ public partial class MainPage : ContentPage {
         });
     }
 
-    // ============================================================
-    // LEADERBOARD / GAME OVER
-    // ============================================================
+    // ---
+    // this part to the last method is for the leaderboards
+    // ---
 
+    // checks if the game is complete and shows the game over scoreboard if it is
     private void CheckGameComplete()
     {
         if (_viewModel.IsGameComplete())
             ShowGameOverScoreboard();
     }
+
+    // returns the color associated with a player based on their index in the player list
     private Color GetPlayerColor(Player player) {
         int idx = _viewModel.Players.IndexOf(player);
         if (idx < 0) idx = 0;
         return Color.FromArgb(PlayerColors[idx % PlayerColors.Length]);
     }
 
+
+    // displays the game over scoreboard with the winner and ranked players
     private void ShowGameOverScoreboard() {
         var ranked = _viewModel.GetRankedPlayers();
         if (ranked.Count == 0) return;
@@ -495,6 +547,8 @@ public partial class MainPage : ContentPage {
         BoardEndModal.IsVisible = true;
     }
 
+
+    // builds a single row in the game over scoreboard showing the player's rank, name, and score
     private Border BuildRankRow(int rank, Player player) {
         var row = new Grid {
             ColumnDefinitions = { new(30), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) },
@@ -552,6 +606,8 @@ public partial class MainPage : ContentPage {
         };
     }
 
+
+    // handles the event when the "Back to Menu" button is clicked, hides the game over modal, and navigates back to the main menu
     private async void OnBoardEndActionClicked(object sender, EventArgs e) {
         BoardEndModal.IsVisible = false;
         await Navigation.PopToRootAsync();

@@ -5,39 +5,39 @@
 
     <Grid RowDefinitions="Auto, *, Auto" RowSpacing="15" ColumnSpacing="15">
 
-        <!-- HEADER -->
+        <!-- Gameplay header -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="20,20,20,0" ColumnSpacing="10">
-            <Label Text="JEO! ANO BA?"
-           TextColor="#FFCC00"
-           FontSize="28"
-           FontAttributes="Bold"
-           VerticalOptions="Center"/>
+            <Label Text="JEO! ANO BA?" 
+                TextColor="#FFCC00"
+                FontSize="28"
+                FontAttributes="Bold"
+                VerticalOptions="Center"/> 
             <Button Grid.Column="1"
-            x:Name="MusicToggleButton"
-            Text="🔊"
-            Clicked="OnMusicToggleClicked"
-            BackgroundColor="#1E1E3F"
-            TextColor="White"
-            CornerRadius="20"
-            FontSize="18"
-            WidthRequest="48"
-            HeightRequest="40"
-            Padding="0"/>
+                x:Name="MusicToggleButton"
+                Text="🔊"
+                Clicked="OnMusicToggleClicked"
+                BackgroundColor="#1E1E3F"
+                TextColor="White"
+                CornerRadius="20"
+                FontSize="18"
+                WidthRequest="48"
+                HeightRequest="40"
+                Padding="0"/> 
             <Button Grid.Column="2"
-            Text="End Game"
-            Clicked="OnEndGameClicked"
-            BackgroundColor="#1E1E3F"
-            TextColor="White"
-            CornerRadius="20"
-            FontAttributes="Bold"
-            Padding="15,8"/>
+                Text="End Game"
+                Clicked="OnEndGameClicked"
+                BackgroundColor="#1E1E3F"
+                TextColor="White"
+                CornerRadius="20"
+                FontAttributes="Bold"
+                Padding="15,8"/> 
         </Grid>
 
-        <!-- BOARD -->
+        <!-- Game board -->
         <Grid Grid.Row="1" ColumnDefinitions="0, *" Padding="10,0">
 
-            <VerticalStackLayout Grid.Column="0" Spacing="10" Padding="5" IsVisible="False">
-                <Label Text="Games In Database:" TextColor="Gray" FontAttributes="Bold"/>
+            <VerticalStackLayout Grid.Column="0" Spacing="10" Padding="5" IsVisible="False"> <!-- Hidden debug menu -->
+                <Label Text="Games In Database:" TextColor="Gray" FontAttributes="Bold"/> 
                 <ListView x:Name="GamesListView" ItemSelected="OnGameSelected" BackgroundColor="#1E1E3F">
                     <ListView.ItemTemplate>
                         <DataTemplate>
@@ -47,11 +47,11 @@
                 </ListView>
             </VerticalStackLayout>
 
-            <Grid x:Name="ProxyBoardGrid" Grid.Column="1" ColumnSpacing="4" RowSpacing="4"/>
+            <Grid x:Name="ProxyBoardGrid" Grid.Column="1" ColumnSpacing="4" RowSpacing="4"/> <!-- Dynamic game board -->
         </Grid>
 
-        <!-- GAMEPLAY MODAL -->
-        <Grid x:Name="EvaluationModal" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="#DD000011" IsVisible="False">
+        <!-- Gameplay modal -->
+        <Grid x:Name="EvaluationModal" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="#DD000011" IsVisible="False"> 
             <Border BackgroundColor="#1E1E3F"
                     Stroke="#FFCC00"
                     StrokeThickness="2"
@@ -67,7 +67,7 @@
                 <ScrollView>
                     <VerticalStackLayout Spacing="15">
 
-                        <!-- Category + Point value + Skip -->
+                        <!-- Clue header -->
                         <Grid ColumnDefinitions="*, Auto">
                             <VerticalStackLayout Spacing="2">
                                 <Label x:Name="ModalCategoryLabel" TextColor="White" FontSize="13" FontAttributes="Bold" Opacity="0.7"/>
@@ -86,7 +86,7 @@
                                     VerticalOptions="Start"/>
                         </Grid>
 
-                        <!-- Question -->
+                        <!-- Clue -->
                         <Border BackgroundColor="#0F0F2D" Padding="15" MinimumHeightRequest="90">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="14"/>
@@ -98,6 +98,7 @@
                                    LineBreakMode="WordWrap"/>
                         </Border>
 
+                        <!-- Answer -->
                         <Label x:Name="ModalAnswerLabel"
                                Text="Answer Text"
                                TextColor="#FFCC00"
@@ -107,7 +108,7 @@
                                LineBreakMode="WordWrap"
                                IsVisible="False"/>
 
-                        <!-- Timer -->
+                        <!-- Countdown timer -->
                         <ProgressBar x:Name="TimerBar" Progress="1" ProgressColor="#4CD964" HeightRequest="10" IsVisible="False"/>
 
                         <Label x:Name="TimerLabel"
@@ -118,7 +119,7 @@
                                HorizontalTextAlignment="Center"
                                IsVisible="False"/>
 
-                        <!-- WHO KNOWS THE ANSWER -->
+                        <!-- Buzz-in prompt -->
                         <Label x:Name="WhoKnowsLabel"
                                Text="WHO KNOWS THE ANSWER?"
                                TextColor="#FFCC00"
@@ -126,14 +127,14 @@
                                FontAttributes="Bold"
                                HorizontalTextAlignment="Center"/>
 
-                        <!-- Buzz-in Grid -->
+                        <!-- Player buzz buttons -->
                         <Grid x:Name="BuzzInGrid"
                               RowDefinitions="Auto, Auto"
                               ColumnDefinitions="*, *"
                               RowSpacing="10"
                               ColumnSpacing="10"/>
 
-                        <!-- Show Answer -->
+                        <!-- Show answer button -->
                         <Grid x:Name="PreAnswerButtonRow" IsVisible="False">
                             <Button Text="SHOW ANSWER"
                                     Clicked="OnShowAnswerClicked"
@@ -151,7 +152,7 @@
                             <Button Text="INCORRECT" Clicked="OnIncorrectClicked" BackgroundColor="#E74C3C" TextColor="White" CornerRadius="14" FontAttributes="Bold" WidthRequest="130"/>
                         </HorizontalStackLayout>
 
-                        <!-- Proceed (timeout case) -->
+                        <!-- Timeout action -->
                         <Button x:Name="ProceedButton"
                                 Text="TIME'S UP — PROCEED"
                                 Clicked="OnProceedClicked"
@@ -168,7 +169,7 @@
             </Border>
         </Grid>
 
-        <!-- BOARD END MODAL (leaderboard / final scoreboard) -->
+        <!-- Game over modal -->
         <Grid x:Name="BoardEndModal" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="#DD000011" IsVisible="False">
             <Border BackgroundColor="#0B1220"
                     Stroke="#1E2A44"
@@ -198,7 +199,7 @@
                                CharacterSpacing="1"
                                HorizontalTextAlignment="Center"/>
 
-                        <!-- Winner spotlight card -->
+                        <!-- Winner spotlight -->
                         <Border BackgroundColor="#D4AF37"
                                 Stroke="#FFD700"
                                 StrokeThickness="2"
@@ -209,7 +210,7 @@
                             <VerticalStackLayout x:Name="WinnerCardHost" Spacing="4" HorizontalOptions="Center"/>
                         </Border>
 
-                        <!-- Ranked list (2nd place onward) -->
+                        <!-- Player rankings -->
                         <VerticalStackLayout x:Name="BoardEndContentHost" Spacing="10"/>
 
                         <Button Text="Play Again"
