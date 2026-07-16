@@ -12,7 +12,7 @@ public partial class MainPage : ContentPage {
     private readonly List<Button> _buzzButtons = new();
     private readonly List<(Border chip, Label label)> _scoreLabels = new();
     private int? _autoLoadGameId;
-    private readonly GameTimerService _timerService = new();
+    private readonly GameTimerService _timerService;
     private readonly string _boardName;
 
     private static readonly string[] PlayerColors =
@@ -24,12 +24,14 @@ public partial class MainPage : ContentPage {
         List<Player> players,
         int? autoLoadGameId = null,
         int timerSeconds = 30,
-        string boardName = "") {
+        string boardName = "",
+        GameTimerService? timerService = null) {
         InitializeComponent();
         _dbService = dbService;
         _viewModel = new GameBoardViewModel(dbService, players, timerSeconds);
         _autoLoadGameId = autoLoadGameId;
         _boardName = boardName;
+        _timerService = timerService ?? new GameTimerService();
         BindingContext = _viewModel;
         _timerService.Tick += OnTimerTick;
         _timerService.TimedOut += OnTimerTimedOut;
@@ -253,6 +255,12 @@ public partial class MainPage : ContentPage {
 
         if (_autoLoadGameId.HasValue)
         {
+            // Update the game's name with the user-entered board name (if provided)
+            if (!string.IsNullOrWhiteSpace(_boardName))
+            {
+                await _dbService.UpdateGameNameAsync(_autoLoadGameId.Value, _boardName);
+            }
+
             await _viewModel.LoadGameAsync(_autoLoadGameId.Value);
 
             if (_viewModel.Categories != null)

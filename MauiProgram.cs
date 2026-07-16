@@ -38,6 +38,7 @@ namespace jeo_ano_ba
             builder.Services.AddSingleton<BgmService>();
             builder.Services.AddTransient<PlayerSetupService>();
             builder.Services.AddTransient<SavedGamesService>();
+            builder.Services.AddTransient<GameTimerService>();
 
             // ============================================
             // VIEW MODELS
@@ -46,6 +47,7 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<SavedGamesViewModel>();
             builder.Services.AddTransient<PlayerSetupViewModel>();
             builder.Services.AddTransient<NewBoardViewModel>();
+            builder.Services.AddTransient<GameBoardViewModel>();
 
             // ============================================
             // PAGES
