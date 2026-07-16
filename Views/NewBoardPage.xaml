@@ -171,7 +171,7 @@
                     </Border.GestureRecognizers>
 
                     <Label
-                        Text="Save &amp; Start"
+                        Text="Next"
                         FontSize="17"
                         FontAttributes="Bold"
                         HorizontalOptions="Center"

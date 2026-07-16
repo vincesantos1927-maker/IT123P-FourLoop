@@ -7,6 +7,7 @@ public class NewBoardViewModel : BaseViewModel
 {
     private readonly GameDatabaseService _dbService;
     private readonly int? _editingGameId;
+    private string? _editingGameOriginalName;
 
     private const int CategoryCount = 6;
     private const int ClueCount = 5;
@@ -81,6 +82,7 @@ public class NewBoardViewModel : BaseViewModel
             return;
 
         GameDb game = await _dbService.GetGameWithDetailsAsync(_editingGameId.Value);
+        _editingGameOriginalName = game.Name;
 
         List<CategoryDb> categories = game.Categories
             .OrderBy(category => category.Id)
@@ -124,7 +126,7 @@ public class NewBoardViewModel : BaseViewModel
         {
             await _dbService.UpdatePlayerAuthoredGameAsync(
                 _editingGameId.Value,
-                "Custom Game",
+                _editingGameOriginalName ?? "Custom Game",
                 categories,
                 startingPointValue: 100,
                 pointIncrement: 100);
