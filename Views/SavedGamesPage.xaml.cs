@@ -33,8 +33,6 @@ public partial class SavedGamesPage : ContentPage
 
         await LoadSavedGamesAsync();
     }
-
-
     // ============================================================
     // LOAD SAVED GAMES
     // ============================================================

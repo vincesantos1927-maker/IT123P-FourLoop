@@ -13,18 +13,27 @@ namespace jeo_ano_ba
         {
             var builder = MauiApp.CreateBuilder();
 
+            // ============================================
+            // PLATFORM-SPECIFIC BASE ADDRESS (Port 60449)
+            // ============================================
+            string baseAddress = DeviceInfo.Platform == DevicePlatform.Android
+                ? "http://10.0.2.2:60449/"   // Android emulator mapping to host loopback
+                : "http://localhost:60449/"; // Windows / iOS mapping directly to localhost
+
+            // Register single HttpClient instance using the designated address
+            builder.Services.AddSingleton(new HttpClient
+            {
+                BaseAddress = new Uri(baseAddress)
+            });
+
+            // Register Framework & Core Utilities
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont(
-                        "OpenSans-Regular.ttf",
-                        "OpenSansRegular");
-
-                    fonts.AddFont(
-                        "OpenSans-Semibold.ttf",
-                        "OpenSansSemibold");
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
 #if DEBUG
@@ -32,12 +41,12 @@ namespace jeo_ano_ba
 #endif
 
             // ============================================
-            // SERVICES
+            // SERVICES (Clean & Single Instance)
             // ============================================
-
             builder.Services.AddSingleton<GameDatabaseService>();
             builder.Services.AddSingleton<BgmService>();
             builder.Services.AddSingleton(AudioManager.Current);
+
             builder.Services.AddTransient<PlayerSetupService>();
             builder.Services.AddTransient<SavedGamesService>();
             builder.Services.AddTransient<GameTimerService>();
@@ -54,7 +63,6 @@ namespace jeo_ano_ba
             // ============================================
             // PAGES
             // ============================================
-
             builder.Services.AddTransient<MainMenuPage>();
             builder.Services.AddTransient<SavedGamesPage>();
             builder.Services.AddTransient<NewBoardPage>();
