@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "jeo ano ba.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "JeoAnoBa.Api\\JeoAnoBa.Api.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

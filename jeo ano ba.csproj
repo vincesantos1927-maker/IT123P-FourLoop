@@ -93,5 +93,10 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
-
+	<ItemGroup>
+		<Compile Remove="JeoAnoBa.Api\**" />
+		<None Remove="JeoAnoBa.Api\**" />
+		<Content Remove="JeoAnoBa.Api\**" />
+		<EmbeddedResource Remove="JeoAnoBa.Api\**" />
+	</ItemGroup>
 </Project>
