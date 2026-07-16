@@ -2,18 +2,18 @@
 
 namespace jeo_ano_ba.Models;
 
-public class Player : INotifyPropertyChanged
+public class Player : INotifyPropertyChanged // tracks player name and score
 {
     public string Name { get; set; } = string.Empty;
 
-    private int _score;
+    private int _score; // INotifyPropertyChanged to update the UI when score changes
     public int Score
     {
         get => _score;
         set { _score = value; OnPropertyChanged(nameof(Score)); }
     }
 
-    private bool _isActive;
+    private bool _isActive; // INotifyPropertyChanged to update the UI when active player changes via buzzer
     public bool IsActive
     {
         get => _isActive;

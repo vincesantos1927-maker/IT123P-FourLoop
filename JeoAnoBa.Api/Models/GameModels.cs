@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JeoAnoBa.Api.Models;
-
+// made to match the property name and value of the other side to serialize and deserialize properly
 public class GameDb
 {
     [Key]
@@ -26,6 +26,7 @@ public class CategoryDb
 
     public string Name { get; set; } = string.Empty;
 
+    // EF Core infers this is the "many" side of a one-to-many via ClueDb.CategoryId.
     public List<ClueDb> Clues { get; set; } = new();
 }
 

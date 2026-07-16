@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace jeo_ano_ba.Models;
 
-public class GameDb
+public class GameDb // whole game board, has info of name mode and list of CategoryDb
 {
     public int Id { get; set; }
 
@@ -13,7 +13,7 @@ public class GameDb
     public List<CategoryDb> Categories { get; set; } = new();
 }
 
-public class CategoryDb
+public class CategoryDb // Belongs to GameDb, holds a list of clueDb 
 {
     public int Id { get; set; }
 
@@ -23,10 +23,10 @@ public class CategoryDb
 
     public List<ClueDb> Clues { get; set; } = new();
 
-    public bool IsSelected { get; set; }
+    public bool IsSelected { get; set; } // for preset games to know which categories are selected
 }
 
-public class ClueDb : INotifyPropertyChanged
+public class ClueDb : INotifyPropertyChanged // Holds question and answer for the whole game, belongs to CategoryDb
 {
     public int Id { get; set; }
 
@@ -36,7 +36,7 @@ public class ClueDb : INotifyPropertyChanged
     public string Answer { get; set; } = string.Empty;
     public int PointValue { get; set; }
 
-    private bool _isCompleted;
+    private bool _isCompleted; // has INotifyPropertyChanged to update the UI when a clue is completed
     public bool IsCompleted
     {
         get => _isCompleted;
@@ -54,7 +54,7 @@ public class ClueDb : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 
-public class JeopardyClue
+public class JeopardyClue // used to deserialize the API response 
 {
     [JsonPropertyName("category")]
     public string Category { get; set; }

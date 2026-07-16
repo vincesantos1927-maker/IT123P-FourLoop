@@ -1,5 +1,6 @@
 ﻿namespace JeoAnoBa.Api.Models;
 
+// made to match the property name and value of the other side to serialize and deserialize properly
 public class ClueInputDto
 {
     public string Question { get; set; } = string.Empty;
@@ -41,8 +42,8 @@ public class ClueUpdateRequest
     public int PointValue { get; set; }
     public bool IsCompleted { get; set; }
 }
-
-public class JeopardyClueSeed
+// reads all the data in jeopardy_clues then stores it in a list then converted to usable CategoryDb and ClueDb rows 
+public class JeopardyClueSeed 
 {
     public string? Category { get; set; }
     public string? Question { get; set; }
