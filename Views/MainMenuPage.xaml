@@ -20,10 +20,10 @@
             Padding="28,50,28,35">
 
             <Grid.RowDefinitions>
+                <RowDefinition Height="0.6*" />
+                <RowDefinition Height="1.8*" />
                 <RowDefinition Height="0.8*" />
-                <RowDefinition Height="2.3*" />
-                <RowDefinition Height="1.2*" />
-                <RowDefinition Height="2.7*" />
+                <RowDefinition Height="3.2*" />
             </Grid.RowDefinitions>
 
             <!-- ========================= -->
@@ -86,18 +86,19 @@
 
             <Grid
                 Grid.Row="1"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
+                HorizontalOptions="Fill"
+                VerticalOptions="Start"
+                Margin="0,5,0,0">
 
                 <VerticalStackLayout
                     HorizontalOptions="Center"
                     VerticalOptions="Center"
-                    Spacing="8">
+                    Spacing="4">
 
                     <Image
-                        Source="logo.png"
-                        WidthRequest="460"
-                        HeightRequest="250"
+                        Source="logo4.png"
+                        WidthRequest="380"
+                        HeightRequest="180"
                         Aspect="AspectFit"
                         HorizontalOptions="Center">
 
@@ -108,17 +109,8 @@
                                 Offset="0,0"
                                 Opacity="0.20"/>
                         </Image.Shadow>
+
                     </Image>
-
-
-                    <Label
-                        Text="BOARD"
-                        FontSize="24"
-                        FontAttributes="Bold"
-                        CharacterSpacing="8"
-                        HorizontalOptions="Center"
-                        TextColor="#D8D8D8"
-                        Margin="0,-60,0,0"/>
 
                     <Border
                         WidthRequest="120"
@@ -159,8 +151,8 @@
                         FontSize="14"
                         CharacterSpacing="4"
                         HorizontalOptions="Center"
-                        TextColor="#FFD700"
-                        Margin="0,8,0,0"/>
+                        TextColor="#F8F8F2"
+                        Margin="0,24,0,0"/>
 
                 </VerticalStackLayout>
 
