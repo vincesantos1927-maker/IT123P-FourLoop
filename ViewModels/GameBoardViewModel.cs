@@ -2,37 +2,41 @@
 using jeo_ano_ba.Services;
 
 namespace jeo_ano_ba.ViewModels;
-
+//gameplay viewmodel, manages the game
 public class GameBoardViewModel : BaseViewModel
 {
+    
     private readonly GameDatabaseService _dbService;
-
+    //sets the match with players and timer config
     public GameBoardViewModel(GameDatabaseService dbService, List<Player> players, int timerSeconds)
     {
         _dbService = dbService;
+        //no players are passed, falls back to single default player
         Players = players.Count > 0 ? players : new List<Player> { new Player { Name = "Player 1" } };
         TimerSeconds = timerSeconds;
     }
-
+    //list of players
     public List<Player> Players { get; }
-
+    //list of categoris
     public List<CategoryDb>? Categories { get; private set; }
-
+    //how many seconds are left per player
     public int TimerSeconds { get; }
-
+    //current clue/question being flasshed on screen
     public ClueDb? CurrentClue { get; private set; }
 
+    //index of who currently is buzzed
     public int? ActivePlayerIndex { get; private set; }
-
+    //tracks player who was last buzzed
     public int? LastPickerIndex { get; private set; }
-
+    //loads game ategories and aswers
     public async Task LoadGameAsync(int gameId)
     {
         GameDb game = await _dbService.GetGameWithDetailsAsync(gameId);
         Categories = game.Categories;
+        //notify ui that categories are chosen so it can build the game now
         OnPropertyChanged(nameof(Categories));
     }
-
+    //whenever 
     public void SelectClue(ClueDb clue)
     {
         CurrentClue = clue;
