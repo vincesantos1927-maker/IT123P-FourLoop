@@ -17,8 +17,8 @@ namespace jeo_ano_ba
             // PLATFORM-SPECIFIC BASE ADDRESS (Port 60449)
             // ============================================
             string baseAddress = DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2:60449/"   // Android emulator mapping to host loopback
-                : "http://localhost:60449/"; // Windows / iOS mapping directly to localhost
+                ? "http://10.0.2.2:5050/"   // Android emulator mapping to host loopback CHANGE TO YOUR LOCAL HOST
+                : "http://localhost:5050/"; // Windows / iOS mapping directly to localhost CHANGE TO YOUR LOCAL HOST
 
             // Register single HttpClient instance using the designated address
             builder.Services.AddSingleton(new HttpClient

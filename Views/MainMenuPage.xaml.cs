@@ -21,6 +21,11 @@ public partial class MainMenuPage : ContentPage
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         UpdateMusicButton();
     }
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.RefreshMusicState();
+    }
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MainMenuViewModel.IsMusicEnabled))

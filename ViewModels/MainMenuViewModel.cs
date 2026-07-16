@@ -42,4 +42,8 @@ public class MainMenuViewModel : BaseViewModel
     {
         IsMusicEnabled = _bgmService.Toggle();
     }
+    public void RefreshMusicState()
+    {
+        IsMusicEnabled = _bgmService.IsEnabled;
+    }
 }
