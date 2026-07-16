@@ -321,4 +321,15 @@ public class GameDatabaseService
         await InitAsync();
         await _database!.UpdateAsync(clue);
     }
+
+    public async Task UpdateGameNameAsync(int gameId, string newName)
+    {
+        await InitAsync();
+        var game = await _database!.Table<GameDb>().FirstOrDefaultAsync(g => g.Id == gameId);
+        if (game != null)
+        {
+            game.Name = newName;
+            await _database.UpdateAsync(game);
+        }
+    }
 }
