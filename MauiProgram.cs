@@ -2,6 +2,7 @@
 using jeo_ano_ba.Services;
 using jeo_ano_ba.Views;
 using CommunityToolkit.Maui;
+using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba
 {
@@ -34,11 +35,17 @@ namespace jeo_ano_ba
             // ============================================
 
             builder.Services.AddSingleton<GameDatabaseService>();
-            builder.Services.AddSingleton<GameSessionService>();
-            builder.Services.AddSingleton<GameTimerService>();
-            builder.Services.AddSingleton<PlayerSetupService>();
-            builder.Services.AddSingleton<CustomBoardDraftService>();
             builder.Services.AddSingleton<BgmService>();
+            builder.Services.AddTransient<PlayerSetupService>();
+            builder.Services.AddTransient<SavedGamesService>();
+
+            // ============================================
+            // VIEW MODELS
+            // ============================================
+            builder.Services.AddTransient<MainMenuViewModel>();
+            builder.Services.AddTransient<SavedGamesViewModel>();
+            builder.Services.AddTransient<PlayerSetupViewModel>();
+            builder.Services.AddTransient<NewBoardViewModel>();
 
             // ============================================
             // PAGES

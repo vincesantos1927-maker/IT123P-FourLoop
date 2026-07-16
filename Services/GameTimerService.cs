@@ -14,7 +14,7 @@ namespace jeo_ano_ba.Services
         public async Task StartAsync(int seconds)
         {
             Stop();
-            RemainingSeconds = Math.Clamp(seconds, 10, 30);
+            RemainingSeconds = Math.Clamp(seconds, 5, 60);
             IsRunning = true;
             _timerTokenSource = new CancellationTokenSource();
             var token = _timerTokenSource.Token;

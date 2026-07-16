@@ -1,18 +1,43 @@
 using CommunityToolkit.Maui.Views;
 using jeo_ano_ba.Services;
+using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba.Views;
 
 public partial class MainMenuPage : ContentPage
 {
     private readonly GameDatabaseService _dbService;
-    private bool _musicEnabled = true;
+    private readonly MainMenuViewModel _viewModel;
 
-    public MainMenuPage(GameDatabaseService dbService)
+    public MainMenuPage(
+    GameDatabaseService dbService,
+    MainMenuViewModel viewModel)
     {
         InitializeComponent();
 
         _dbService = dbService;
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        UpdateMusicButton();
+    }
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainMenuViewModel.IsMusicEnabled))
+            UpdateMusicButton();
+    }
+    private void UpdateMusicButton()
+    {
+        if (_viewModel.IsMusicEnabled)
+        {
+            MusicIcon.Text = "🔊";
+            MusicButton.BackgroundColor = Color.FromArgb("#2F5D95");
+        }
+        else
+        {
+            MusicIcon.Text = "🔇";
+            MusicButton.BackgroundColor = Color.FromArgb("#234A78");
+        }
     }
 
     private async Task AnimateButton(Border button)
@@ -34,13 +59,13 @@ public partial class MainMenuPage : ContentPage
     {
         await AnimateButton(GeneralKnowledgeButton);
 
-        var categories = await _dbService.GetAvailableCategoriesAsync();
+        var categories = await _viewModel.GetAvailableCategoriesAsync();
 
-        if (categories == null || categories.Count == 0)
+        if (categories.Count == 0)
         {
             await DisplayAlert(
-                "No Categories Found",
-                "There are no preset categories available yet.",
+                "No Categories Available",
+                "There are no categories available to select. Please add categories first.",
                 "OK");
             return;
         }
@@ -52,11 +77,9 @@ public partial class MainMenuPage : ContentPage
         if (result is not List<string> chosenCategories || chosenCategories.Count != 6)
             return;
 
-        int gameId = await _dbService.BuildCustomGameFromCategoriesAsync(
-            "General Knowledge",
-            chosenCategories);
+        int gameId = await _viewModel.BuildGeneralKnowledgeGameAsync(chosenCategories);
 
-        await Navigation.PushAsync(new PlayerSetupPage(_dbService, gameId));
+        await Navigation.PushAsync(new PlayerSetupPage(_dbService, new PlayerSetupViewModel(_dbService, new PlayerSetupService()), gameId));
     }
 
     private async void MusicTapped(object sender, TappedEventArgs e)
@@ -71,19 +94,6 @@ public partial class MainMenuPage : ContentPage
             120,
             Easing.SpringOut);
 
-        _musicEnabled = !_musicEnabled;
-
-        if (_musicEnabled)
-        {
-            MusicIcon.Text = "🔊";
-            MusicButton.BackgroundColor =
-                Color.FromArgb("#2F5D95");
-        }
-        else
-        {
-            MusicIcon.Text = "🔇";
-            MusicButton.BackgroundColor =
-                Color.FromArgb("#234A78");
-        }
+        _viewModel.ToggleMusic();
     }
 }

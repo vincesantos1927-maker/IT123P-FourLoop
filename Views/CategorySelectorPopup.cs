@@ -2,7 +2,7 @@
 using Microsoft.Maui.Controls.Shapes;
 using jeo_ano_ba.Models;
 
-namespace jeo_ano_ba.Services;
+namespace jeo_ano_ba.Views;
 
 public class CategorySelectorPopup : Popup {
     private readonly List<CategoryDb> _allCategories;

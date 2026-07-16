@@ -2,23 +2,18 @@
 using jeo_ano_ba.Models;
 using jeo_ano_ba.Services;
 using Microsoft.Maui.Controls.Shapes;
-
+using jeo_ano_ba.ViewModels;
+using jeo_ano_ba.Views;
 namespace jeo_ano_ba;
 
 public partial class MainPage : ContentPage {
     private readonly GameDatabaseService _dbService;
-    private readonly List<Player> _players;
+    private readonly GameBoardViewModel _viewModel;
     private readonly List<Button> _buzzButtons = new();
     private readonly List<(Border chip, Label label)> _scoreLabels = new();
-    private int? _activePlayerIndex = null;
-    private int? _lastPickerIndex = null;
     private int? _autoLoadGameId;
     private readonly GameTimerService _timerService = new();
-    private readonly int _timerSeconds;
-    private readonly string _boardName; // 1. Added variable to save the board name
-
-    private ClueDb? _currentEvaluatingClue;
-    private List<CategoryDb>? _currentCategories;
+    private readonly string _boardName;
 
     private static readonly string[] PlayerColors =
         { "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6" };
@@ -32,10 +27,10 @@ public partial class MainPage : ContentPage {
         string boardName = "") {
         InitializeComponent();
         _dbService = dbService;
-        _players = players.Count > 0 ? players : new List<Player> { new Player { Name = "Player 1" } };
+        _viewModel = new GameBoardViewModel(dbService, players, timerSeconds);
         _autoLoadGameId = autoLoadGameId;
-        _timerSeconds = timerSeconds;
-        _boardName = boardName; // 3. Save the board name here
+        _boardName = boardName;
+        BindingContext = _viewModel;
         _timerService.Tick += OnTimerTick;
         _timerService.TimedOut += OnTimerTimedOut;
 
@@ -64,7 +59,7 @@ public partial class MainPage : ContentPage {
         Content = wrapper;
     }
 
-    private static string FormatScore(int score) => score < 0 ? $"-${Math.Abs(score)}" : $"${score}";
+    private static string FormatScore(int score) => GameBoardViewModel.FormatScore(score);
 
     private Grid BuildScoreFooter() {
         _scoreLabels.Clear();
@@ -75,11 +70,11 @@ public partial class MainPage : ContentPage {
             BackgroundColor = Color.FromArgb("#0F0F2D")
         };
 
-        for (int i = 0; i < _players.Count; i++)
+        for (int i = 0; i < _viewModel.Players.Count; i++)
             bar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-        for (int i = 0; i < _players.Count; i++) {
-            var player = _players[i];
+        for (int i = 0; i < _viewModel.Players.Count; i++) {
+            var player = _viewModel.Players[i];
             string color = PlayerColors[i % PlayerColors.Length];
 
             var chip = new Border {
@@ -111,8 +106,8 @@ public partial class MainPage : ContentPage {
         _buzzButtons.Clear();
         BuzzInGrid.Children.Clear();
 
-        for (int i = 0; i < _players.Count; i++) {
-            var player = _players[i];
+        for (int i = 0; i < _viewModel.Players.Count; i++) {
+            var player = _viewModel.Players[i];
             string color = PlayerColors[i % PlayerColors.Length];
 
             var button = new Button {
@@ -138,12 +133,13 @@ public partial class MainPage : ContentPage {
         }
     }
 
-    private async void OnPlayerBuzzed(int index) {
-        if (_currentEvaluatingClue == null) return;
-        if (_activePlayerIndex != null) return;
+    private async void OnPlayerBuzzed(int index)
+    {
+        if (_viewModel.CurrentClue == null) return;
+        if (_viewModel.ActivePlayerIndex != null) return;
 
         _timerService.Stop();
-        _activePlayerIndex = index;
+        _viewModel.BuzzIn(index);
 
         MainThread.BeginInvokeOnMainThread(() => {
             SkipButton.IsVisible = false;
@@ -152,21 +148,21 @@ public partial class MainPage : ContentPage {
             TimerLabel.IsVisible = true;
             TimerBar.IsVisible = true;
             TimerBar.Progress = 1;
-            TimerLabel.Text = $"{_timerSeconds}s";
+            TimerLabel.Text = $"{_viewModel.TimerSeconds}s";
 
-            for (int i = 0; i < _buzzButtons.Count; i++) {
+            for (int i = 0; i < _buzzButtons.Count; i++)
+            {
                 bool isActive = i == index;
                 _buzzButtons[i].Opacity = isActive ? 1.0 : 0.3;
-                _buzzButtons[i].IsEnabled = false; // lock all buttons once someone buzzes
-                _buzzButtons[i].Text = isActive ? $"{_players[i].Name}\nAnswering..." : _players[i].Name;
+                _buzzButtons[i].IsEnabled = false;
+                _buzzButtons[i].Text = isActive ? $"{_viewModel.Players[i].Name}\nAnswering..." : _viewModel.Players[i].Name;
             }
         });
 
-        await _timerService.StartAsync(_timerSeconds);
+        await _timerService.StartAsync(_viewModel.TimerSeconds);
     }
 
     private void PopulateBoard(List<CategoryDb> categories) {
-        _currentCategories = categories;
 
         ProxyBoardGrid.Children.Clear();
         ProxyBoardGrid.ColumnDefinitions.Clear();
@@ -226,24 +222,25 @@ public partial class MainPage : ContentPage {
         }
     }
 
-    private void RefreshBoard() {
-        if (_currentCategories != null)
-            PopulateBoard(_currentCategories);
+    private void RefreshBoard()
+    {
+        if (_viewModel.Categories != null)
+            PopulateBoard(_viewModel.Categories);
     }
 
     private void ResetBuzzers() {
-        _activePlayerIndex = null;
+
         WhoKnowsLabel.IsVisible = true;
 
         for (int i = 0; i < _buzzButtons.Count; i++) {
             _buzzButtons[i].IsEnabled = true;
             _buzzButtons[i].Opacity = 1.0;
-            _buzzButtons[i].Text = _players[i].Name;
+            _buzzButtons[i].Text = _viewModel.Players[i].Name;
         }
 
         for (int i = 0; i < _scoreLabels.Count; i++) {
-            _scoreLabels[i].label.Text = $"{_players[i].Name}\n{FormatScore(_players[i].Score)}";
-            _scoreLabels[i].chip.StrokeThickness = (_lastPickerIndex.HasValue && i == _lastPickerIndex.Value) ? 3 : 0;
+            _scoreLabels[i].label.Text = $"{_viewModel.Players[i].Name}\n{GameBoardViewModel.FormatScore(_viewModel.Players[i].Score)}";
+            _scoreLabels[i].chip.StrokeThickness = (_viewModel.LastPickerIndex.HasValue && i == _viewModel.LastPickerIndex.Value) ? 3 : 0;
             _scoreLabels[i].chip.Stroke = Colors.White;
         }
 
@@ -254,9 +251,13 @@ public partial class MainPage : ContentPage {
         base.OnAppearing();
         await RefreshGameListMenuAsync();
 
-        if (_autoLoadGameId.HasValue) {
-            var details = await _dbService.GetGameWithDetailsAsync(_autoLoadGameId.Value);
-            PopulateBoard(details.Categories);
+        if (_autoLoadGameId.HasValue)
+        {
+            await _viewModel.LoadGameAsync(_autoLoadGameId.Value);
+
+            if (_viewModel.Categories != null)
+                PopulateBoard(_viewModel.Categories);
+
             _autoLoadGameId = null;
         }
     }
@@ -293,15 +294,18 @@ public partial class MainPage : ContentPage {
     }
 
     private async void OnGameSelected(object sender, SelectedItemChangedEventArgs e) {
-        if (e.SelectedItem is GameDb selectedGame) {
-            var details = await _dbService.GetGameWithDetailsAsync(selectedGame.Id);
-            PopulateBoard(details.Categories);
+        if (e.SelectedItem is GameDb selectedGame)
+        {
+            await _viewModel.LoadGameAsync(selectedGame.Id);
+
+            if (_viewModel.Categories != null)
+                PopulateBoard(_viewModel.Categories);
         }
     }
 
     private void OnClueTileClicked(object sender, EventArgs e) {
         if (sender is Button { CommandParameter: ClueDb clue }) {
-            _currentEvaluatingClue = clue;
+            _viewModel.SelectClue(clue); ;
             ModalCategoryLabel.Text = clue.CategoryName.ToUpper();
             ModalPointValueLabel.Text = $"${clue.PointValue}";
             ModalClueLabel.Text = clue.Question;
@@ -320,31 +324,31 @@ public partial class MainPage : ContentPage {
     }
 
     private void OnShowAnswerClicked(object sender, EventArgs e) {
-        if (_currentEvaluatingClue == null) return;
+        if (_viewModel.CurrentClue == null) return;
 
         _timerService.Stop();
         TimerLabel.IsVisible = false;
         TimerBar.IsVisible = false;
 
-        ModalAnswerLabel.Text = _currentEvaluatingClue.Answer;
+        ModalAnswerLabel.Text = _viewModel.CurrentClue.Answer;
         ModalAnswerLabel.IsVisible = true;
 
         PreAnswerButtonRow.IsVisible = false;
         PostAnswerButtonRow.IsVisible = true;
 
-        if (_activePlayerIndex.HasValue) {
-            _buzzButtons[_activePlayerIndex.Value].Text = _players[_activePlayerIndex.Value].Name;
+        if (_viewModel.ActivePlayerIndex.HasValue)
+        {
+            int index = _viewModel.ActivePlayerIndex.Value;
+            _buzzButtons[index].Text = _viewModel.Players[index].Name;
         }
     }
 
     private async void OnSkipClicked(object sender, EventArgs e) {
-        if (_currentEvaluatingClue == null) return;
-        if (_activePlayerIndex != null) return;
+        if (_viewModel.CurrentClue == null) return;
+        if (_viewModel.ActivePlayerIndex != null) return;
 
         _timerService.Stop();
-        _currentEvaluatingClue.IsCompleted = true;
-        await _dbService.UpdateClueStateAsync(_currentEvaluatingClue);
-        _currentEvaluatingClue = null;
+        await _viewModel.SkipCurrentClueAsync();
 
         EvaluationModal.IsVisible = false;
         ResetBuzzers();
@@ -361,13 +365,9 @@ public partial class MainPage : ContentPage {
     }
 
     private async void OnProceedClicked(object sender, EventArgs e) {
-        if (_currentEvaluatingClue == null) return;
+        if(_viewModel.CurrentClue == null) return;
 
-        _lastPickerIndex = _activePlayerIndex;
-
-        _currentEvaluatingClue.IsCompleted = true;
-        await _dbService.UpdateClueStateAsync(_currentEvaluatingClue);
-        _currentEvaluatingClue = null;
+        await _viewModel.FinishCurrentClueAsync();
 
         EvaluationModal.IsVisible = false;
         ResetBuzzers();
@@ -376,24 +376,13 @@ public partial class MainPage : ContentPage {
     }
 
     private async Task ResolveClueAsync(bool isCorrect) {
-        if (_currentEvaluatingClue == null) return;
-        if (_activePlayerIndex == null) {
+        if (_viewModel.CurrentClue == null) return;
+        if (_viewModel.ActivePlayerIndex == null) {
             await DisplayAlert("No Buzz-In", "A player needs to buzz in before you can score this clue.", "OK");
             return;
         }
 
-        var activePlayer = _players[_activePlayerIndex.Value];
-
-        if (isCorrect)
-            activePlayer.Score += _currentEvaluatingClue.PointValue;
-        else
-            activePlayer.Score -= _currentEvaluatingClue.PointValue;
-
-        _lastPickerIndex = _activePlayerIndex;
-
-        _currentEvaluatingClue.IsCompleted = true;
-        await _dbService.UpdateClueStateAsync(_currentEvaluatingClue);
-        _currentEvaluatingClue = null;
+        await _viewModel.ResolveCurrentClueAsync(isCorrect);
 
         EvaluationModal.IsVisible = false;
         ResetBuzzers();
@@ -408,19 +397,19 @@ public partial class MainPage : ContentPage {
     private void OnTimerTick(int seconds) {
         MainThread.BeginInvokeOnMainThread(() => {
             TimerLabel.Text = $"{seconds}s";
-            TimerBar.ProgressTo((double)seconds / _timerSeconds, 900, Easing.Linear);
+            TimerBar.ProgressTo((double)seconds / _viewModel.TimerSeconds, 900, Easing.Linear);
         });
     }
 
     private async void OnTimerTimedOut() {
-        if (_currentEvaluatingClue == null || _activePlayerIndex == null)
+        if (_viewModel.CurrentClue == null || _viewModel.ActivePlayerIndex == null)
             return;
 
-        var activePlayer = _players[_activePlayerIndex.Value];
-        activePlayer.Score -= _currentEvaluatingClue.PointValue;
+        string answer = _viewModel.CurrentClue.Answer;
+        await _viewModel.ApplyTimeoutPenaltyAsync();
 
         MainThread.BeginInvokeOnMainThread(() => {
-            ModalAnswerLabel.Text = _currentEvaluatingClue.Answer;
+            ModalAnswerLabel.Text = answer;
             ModalAnswerLabel.IsVisible = true;
 
             TimerLabel.IsVisible = false;
@@ -429,34 +418,25 @@ public partial class MainPage : ContentPage {
             PostAnswerButtonRow.IsVisible = false;
             ProceedButton.IsVisible = true;
         });
-
-        _currentEvaluatingClue.IsCompleted = true;
-        await _dbService.UpdateClueStateAsync(_currentEvaluatingClue);
     }
 
     // ============================================================
     // LEADERBOARD / GAME OVER
     // ============================================================
 
-    private void CheckGameComplete() {
-        if (_currentCategories == null) return;
-
-        bool allDone = _currentCategories
-            .SelectMany(c => c.Clues)
-            .All(clue => clue.IsCompleted);
-
-        if (allDone)
+    private void CheckGameComplete()
+    {
+        if (_viewModel.IsGameComplete())
             ShowGameOverScoreboard();
     }
-
     private Color GetPlayerColor(Player player) {
-        int idx = _players.IndexOf(player);
+        int idx = _viewModel.Players.IndexOf(player);
         if (idx < 0) idx = 0;
         return Color.FromArgb(PlayerColors[idx % PlayerColors.Length]);
     }
 
     private void ShowGameOverScoreboard() {
-        var ranked = _players.OrderByDescending(p => p.Score).ToList();
+        var ranked = _viewModel.GetRankedPlayers();
         if (ranked.Count == 0) return;
 
         BoardEndContentHost.Children.Clear();

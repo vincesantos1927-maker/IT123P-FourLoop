@@ -1,12 +1,14 @@
 using jeo_ano_ba.Models;
 using jeo_ano_ba.Services;
 using Microsoft.Maui.Controls.Shapes;
+using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba.Views;
 
 public partial class SavedGamesPage : ContentPage
 {
     private readonly GameDatabaseService _dbService;
+    private readonly SavedGamesViewModel _viewModel;
 
     private bool _isLoading;
 
@@ -15,6 +17,9 @@ public partial class SavedGamesPage : ContentPage
         InitializeComponent();
 
         _dbService = dbService;
+        _viewModel = new SavedGamesViewModel(new SavedGamesService(dbService));
+
+        BindingContext = _viewModel;
     }
 
 
@@ -45,27 +50,7 @@ public partial class SavedGamesPage : ContentPage
 
             GamesContainer.Children.Clear();
 
-            List<GameDb> allGames =
-                await _dbService.GetAllGamesAsync();
-
-            // Do not show Master Library / preset games
-            List<GameDb> savedGames = new();
-            foreach (GameDb db in allGames.Where(game => !game.IsPreset))
-            {
-                GameDb detailedGame = await _dbService.GetGameWithDetailsAsync(db.Id);
-                bool hasUnfinishedClues = detailedGame.Categories.SelectMany(category => category.Clues).Any(clue => !clue.IsCompleted);
-                if (hasUnfinishedClues)
-                {
-                    savedGames.Add(db);
-                }
-                else
-                {
-                    await _dbService.DeleteGameAsync(db.Id);
-                }
-             
-            }
-            savedGames = savedGames.OrderByDescending(game => game.Id).ToList(); // Sort by Id descending to show the most recent games first
-
+            List<SavedGameCardViewModel> savedGames = await _viewModel.LoadSavedGameCardsAsync();
             // EMPTY STATE
 
             if (savedGames.Count == 0)
@@ -85,7 +70,7 @@ public partial class SavedGamesPage : ContentPage
             GamesScrollView.IsVisible = true;
 
 
-            foreach (GameDb game in savedGames)
+            foreach (SavedGameCardViewModel game in savedGames)
             {
                 Border gameCard =
                     await CreateGameCardAsync(game);
@@ -111,37 +96,9 @@ public partial class SavedGamesPage : ContentPage
     // CREATE SAVED GAME CARD
     // ============================================================
 
-    private async Task<Border> CreateGameCardAsync(GameDb game)
+    private Task<Border> CreateGameCardAsync(SavedGameCardViewModel game)
     {
-        int categoryCount = 0;
-        int clueCount = 0;
-
-        List<string> categoryNames = new();
-
-        try
-        {
-            GameDb detailedGame =
-                await _dbService.GetGameWithDetailsAsync(game.Id);
-
-            if (detailedGame.Categories != null)
-            {
-                categoryCount = detailedGame.Categories.Count;
-
-                clueCount = detailedGame.Categories.Sum(category =>
-                    category.Clues?.Count ?? 0);
-
-                categoryNames = detailedGame.Categories
-                    .Select(category => category.Name)
-                    .Where(name => !string.IsNullOrWhiteSpace(name))
-                    .ToList();
-            }
-        }
-        catch
-        {
-            // Card can still display if details fail to load.
-        }
-
-
+        
         // GAME TITLE
 
         Label titleLabel = new()
@@ -174,9 +131,7 @@ public partial class SavedGamesPage : ContentPage
         };
 
 
-        string categoryPreview = categoryNames.Count > 0
-            ? string.Join(" · ", categoryNames)
-            : "No categories";
+        string categoryPreview = game.CategoryPreview;
 
         Label categoriesLabel = new()
         {
@@ -277,6 +232,7 @@ public partial class SavedGamesPage : ContentPage
             await Navigation.PushAsync(
                 new PlayerSetupPage(
                     _dbService,
+                    new PlayerSetupViewModel(_dbService, new PlayerSetupService()),
                     game.Id));
         };
 
@@ -304,7 +260,7 @@ public partial class SavedGamesPage : ContentPage
 
             try
             {
-                await _dbService.DeleteGameAsync(game.Id);
+                await _viewModel.DeleteGameAsync(game.Id);
 
                 await LoadSavedGamesAsync();
             }
@@ -428,7 +384,7 @@ public partial class SavedGamesPage : ContentPage
         };
 
 
-        return card;
+        return Task.FromResult(card);
     }
 
 

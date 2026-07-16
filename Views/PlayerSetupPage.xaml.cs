@@ -1,15 +1,14 @@
 using jeo_ano_ba.Models;
 using jeo_ano_ba.Services;
 using Microsoft.Maui.Controls.Shapes;
+using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba.Views;
 
 public partial class PlayerSetupPage : ContentPage {
     private readonly GameDatabaseService _dbService;
     private readonly int _gameId;
-
-    private int _playerCount = 2;
-    private int _timerSeconds = 30;
+    private readonly PlayerSetupViewModel _viewModel;
 
     private readonly List<Entry> _playerEntries = new();
 
@@ -21,17 +20,34 @@ public partial class PlayerSetupPage : ContentPage {
         Color.FromArgb("#BA68C8")  // Purple
     };
 
-    public PlayerSetupPage(GameDatabaseService dbService, int gameId) {
+    public PlayerSetupPage(GameDatabaseService dbService, PlayerSetupViewModel viewModel, int gameId)
+    {
         InitializeComponent();
 
         _dbService = dbService;
         _gameId = gameId;
 
-        PlayerCountLabel.Text = _playerCount.ToString();
-        TimerLabel.Text = _timerSeconds.ToString();
+        _viewModel = viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        PlayerCountLabel.Text = _viewModel.PlayerCount.ToString();
+        TimerLabel.Text = _viewModel.TimerSeconds.ToString();
 
         BuildPlayers();
         LoadDefaultBoardName();
+    }
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(PlayerSetupViewModel.PlayerCount):
+                PlayerCountLabel.Text = _viewModel.PlayerCount.ToString();
+                BuildPlayers();
+                break;
+            case nameof(PlayerSetupViewModel.TimerSeconds):
+                TimerLabel.Text = _viewModel.TimerSeconds.ToString();
+                break;
+        }
     }
 
     // ===================================================
@@ -41,10 +57,9 @@ public partial class PlayerSetupPage : ContentPage {
     private async void LoadDefaultBoardName() {
         // NOTE: Please check if GetAllGamesAsync() is the correct name 
         // in your GameDatabaseService. Change it if you use a different name.
-        var allGames = await _dbService.GetAllGamesAsync();
-        int gameCount = allGames?.Count ?? 0;
+        await _viewModel.LoadDefaultBoardNameAsync();
 
-        BoardNameEntry.Text = $"Board {gameCount + 1}";
+        BoardNameEntry.Text = _viewModel.BoardName;
     }
 
     // ===================================================
@@ -55,7 +70,7 @@ public partial class PlayerSetupPage : ContentPage {
         PlayersContainer.Children.Clear();
         _playerEntries.Clear();
 
-        for (int i = 0; i < _playerCount; i++) {
+        for (int i = 0; i < _viewModel.PlayerCount; i++) {
             var colorCircle = new Border {
                 WidthRequest = 22,
                 HeightRequest = 22,
@@ -112,42 +127,27 @@ public partial class PlayerSetupPage : ContentPage {
     // PLAYER COUNT
     // ===================================================
 
-    private void PlayerMinusTapped(object sender, TappedEventArgs e) {
-        if (_playerCount == 2)
-            return;
-
-        _playerCount--;
-        PlayerCountLabel.Text = _playerCount.ToString();
-        BuildPlayers();
+    private void PlayerMinusTapped(object sender, TappedEventArgs e)
+    {
+        _viewModel.DecreasePlayerCount();
+    }
+        
+    private void PlayerPlusTapped(object sender, TappedEventArgs e)
+    {
+        _viewModel.IncreasePlayerCount();
+        
     }
 
-    private void PlayerPlusTapped(object sender, TappedEventArgs e) {
-        if (_playerCount == 4)
-            return;
-
-        _playerCount++;
-        PlayerCountLabel.Text = _playerCount.ToString();
-        BuildPlayers();
+    private void TimerMinusTapped(object sender, TappedEventArgs e)
+    {
+        _viewModel.DecreaseTimer();
+       
     }
 
-    // ===================================================
-    // TIMER
-    // ===================================================
-
-    private void TimerMinusTapped(object sender, TappedEventArgs e) {
-        if (_timerSeconds == 5)
-            return;
-
-        _timerSeconds -= 5;
-        TimerLabel.Text = _timerSeconds.ToString();
-    }
-
-    private void TimerPlusTapped(object sender, TappedEventArgs e) {
-        if (_timerSeconds == 60)
-            return;
-
-        _timerSeconds += 5;
-        TimerLabel.Text = _timerSeconds.ToString();
+    private void TimerPlusTapped(object sender, TappedEventArgs e)
+    {
+        _viewModel.IncreaseTimer();
+       
     }
 
     // ===================================================
@@ -171,18 +171,18 @@ public partial class PlayerSetupPage : ContentPage {
             return; // This stops the game from starting
         }
 
-        var players = new List<Player>();
+        var playerNames = new List<string>();
 
-        for (int i = 0; i < _playerEntries.Count; i++) {
+        for (int i = 0; i < _playerEntries.Count; i++)
+        {
             string name = string.IsNullOrWhiteSpace(_playerEntries[i].Text)
                 ? $"Player {i + 1}"
                 : _playerEntries[i].Text!.Trim();
 
-            players.Add(new Player {
-                Name = name,
-                Score = 0
-            });
+            playerNames.Add(name);
         }
+
+        var players = _viewModel.CreatePlayers(playerNames);
 
         // 2. Go to MainPage with the new boardName string
         await Navigation.PushAsync(
@@ -190,7 +190,7 @@ public partial class PlayerSetupPage : ContentPage {
                 _dbService,
                 players,
                 _gameId,
-                _timerSeconds,
+                _viewModel.TimerSeconds,
                 boardName));
     }
 }

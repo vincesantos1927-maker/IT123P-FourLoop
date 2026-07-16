@@ -1,7 +1,7 @@
-using jeo_ano_ba.Models;
 using jeo_ano_ba.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
+using jeo_ano_ba.ViewModels;
 
 namespace jeo_ano_ba.Views;
 
@@ -12,6 +12,7 @@ public partial class NewBoardPage : ContentPage
     // null = creating a new board
     // has value = editing an existing saved board
     private readonly int? _editingGameId;
+    private readonly NewBoardViewModel _viewModel;
 
     private readonly int[] values = { 200, 400, 600, 800, 1000 };
 
@@ -25,12 +26,6 @@ public partial class NewBoardPage : ContentPage
     // =============================
 
     private readonly Entry[] _categoryEntries = new Entry[6];
-
-    private readonly string[,] _questions = new string[6, 5];
-    private readonly string[,] _answers = new string[6, 5];
-
-    private readonly bool[,] _filled = new bool[6, 5];
-
     private readonly Label[,] _cellLabels = new Label[6, 5];
 
 
@@ -44,23 +39,27 @@ public partial class NewBoardPage : ContentPage
 
         _dbService = dbService;
         _editingGameId = null;
-
+        _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
+        BindingContext = _viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;  
         BuildBoard();
     }
-
 
     // ============================================================
     // EDIT MODE CONSTRUCTOR
     // ============================================================
 
     public NewBoardPage(
-        GameDatabaseService dbService,
-        int gameId)
+    GameDatabaseService dbService,
+    int gameId)
     {
         InitializeComponent();
 
         _dbService = dbService;
         _editingGameId = gameId;
+        _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
+        BindingContext = _viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;   // ADD THIS LINE
 
         BuildBoard();
 
@@ -71,6 +70,15 @@ public partial class NewBoardPage : ContentPage
     // ============================================================
     // BUILD BOARD UI
     // ============================================================
+    // ============================================================
+    // BUILD BOARD UI
+    // ============================================================
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(NewBoardViewModel.ProgressText))
+            ProgressLabel.Text = _viewModel.ProgressText;
+    }
 
     private void BuildBoard()
     {
@@ -228,10 +236,10 @@ public partial class NewBoardPage : ContentPage
                     PopupValueLabel.Text = $"${tileValue}";
 
                     QuestionEditor.Text =
-                        _questions[tileColumn, tileRow] ?? "";
+                        _viewModel.GetQuestion(tileColumn, tileRow);
 
                     AnswerEntry.Text =
-                        _answers[tileColumn, tileRow] ?? "";
+                        _viewModel.GetAnswer(tileColumn, tileRow);
 
                     PopupOverlay.IsVisible = true;
                 };
@@ -266,105 +274,28 @@ public partial class NewBoardPage : ContentPage
         if (!_editingGameId.HasValue)
             return;
 
-
         try
         {
-            GameDb game =
-                await _dbService.GetGameWithDetailsAsync(
-                    _editingGameId.Value);
+            await _viewModel.LoadExistingBoardAsync();
 
-
-            List<CategoryDb> categories =
-                game.Categories
-                    .OrderBy(category => category.Id)
-                    .ToList();
-
-
-            if (categories.Count != 6)
+            for (int column = 0; column < 6; column++)
             {
-                await DisplayAlertAsync(
-                    "Cannot Edit Board",
-                    "This saved game does not contain exactly 6 categories.",
-                    "OK");
-
-                await Navigation.PopAsync();
-
-                return;
-            }
-
-
-            for (int column = 0;
-                 column < 6;
-                 column++)
-            {
-                CategoryDb category =
-                    categories[column];
-
-
-                // Load category name
-
                 _categoryEntries[column].Text =
-                    category.Name;
+                    _viewModel.GetCategoryName(column);
 
-
-                List<ClueDb> clues =
-                    category.Clues
-                        .OrderBy(clue => clue.PointValue)
-                        .ToList();
-
-
-                if (clues.Count != 5)
+                for (int row = 0; row < 5; row++)
                 {
-                    await DisplayAlertAsync(
-                        "Cannot Edit Board",
-                        $"Category {column + 1} does not contain exactly 5 clues.",
-                        "OK");
+                    if (!_viewModel.IsFilled(column, row))
+                        continue;
 
-                    await Navigation.PopAsync();
+                    Label cellLabel = _cellLabels[column, row];
 
-                    return;
-                }
-
-
-                for (int row = 0;
-                     row < 5;
-                     row++)
-                {
-                    ClueDb clue =
-                        clues[row];
-
-
-                    _questions[column, row] =
-                        clue.Question;
-
-
-                    _answers[column, row] =
-                        clue.Answer;
-
-
-                    _filled[column, row] =
-                        true;
-
-
-                    Label cellLabel =
-                        _cellLabels[column, row];
-
-
-                    cellLabel.Text =
-                        "✓";
-
-
-                    cellLabel.TextColor =
-                        Color.FromArgb("#FFD700");
-
-
-                    cellLabel.FontSize =
-                        24;
+                    cellLabel.Text = "✓";
+                    cellLabel.TextColor = Color.FromArgb("#FFD700");
+                    cellLabel.FontSize = 24;
                 }
             }
 
-
-            UpdateProgress();
         }
         catch (Exception ex)
         {
@@ -372,6 +303,8 @@ public partial class NewBoardPage : ContentPage
                 "Load Failed",
                 ex.Message,
                 "OK");
+
+            await Navigation.PopAsync();
         }
     }
 
@@ -407,18 +340,16 @@ public partial class NewBoardPage : ContentPage
     // ============================================================
 
     private async void SaveQuestionTapped(
-        object sender,
-        TappedEventArgs e)
+    object sender,
+    TappedEventArgs e)
     {
         string question =
             QuestionEditor.Text?.Trim()
             ?? string.Empty;
 
-
         string answer =
             AnswerEntry.Text?.Trim()
             ?? string.Empty;
-
 
         if (string.IsNullOrWhiteSpace(question) ||
             string.IsNullOrWhiteSpace(answer))
@@ -431,217 +362,51 @@ public partial class NewBoardPage : ContentPage
             return;
         }
 
-
-        _questions[
+        _viewModel.SaveClueInMemory(
             _selectedColumn,
-            _selectedRow] =
-            question;
-
-
-        _answers[
-            _selectedColumn,
-            _selectedRow] =
-            answer;
-
-
-        _filled[
-            _selectedColumn,
-            _selectedRow] =
-            true;
-
+            _selectedRow,
+            question,
+            answer);
 
         Label selectedLabel =
             _cellLabels[
                 _selectedColumn,
                 _selectedRow];
 
+        selectedLabel.Text = "✓";
+        selectedLabel.TextColor = Color.FromArgb("#FFD700");
+        selectedLabel.FontSize = 24;
 
-        selectedLabel.Text =
-            "✓";
-
-
-        selectedLabel.TextColor =
-            Color.FromArgb("#FFD700");
-
-
-        selectedLabel.FontSize =
-            24;
-
-
-        PopupOverlay.IsVisible =
-            false;
-
+        PopupOverlay.IsVisible = false;
 
         if (_selectedTile != null)
         {
-            _selectedTile.StrokeThickness =
-                1;
-
-            _selectedTile.Stroke =
-                Color.FromArgb("#375D99");
-
-            _selectedTile =
-                null;
+            _selectedTile.StrokeThickness = 1;
+            _selectedTile.Stroke = Color.FromArgb("#375D99");
+            _selectedTile = null;
         }
 
-
-        UpdateProgress();
     }
-
-
-    // ============================================================
-    // UPDATE PROGRESS
-    // ============================================================
-
-    private void UpdateProgress()
-    {
-        int filledCount = 0;
-
-
-        for (int column = 0;
-             column < 6;
-             column++)
-        {
-            for (int row = 0;
-                 row < 5;
-                 row++)
-            {
-                if (_filled[column, row])
-                {
-                    filledCount++;
-                }
-            }
-        }
-
-
-        ProgressLabel.Text =
-            $"{filledCount}/30 filled";
-    }
-
-
-    // ============================================================
-    // BUILD CATEGORY DATA FROM UI
-    // ============================================================
-
-    private async Task<List<CustomCategoryInput>?>
-        BuildCategoriesFromBoardAsync()
-    {
-        var categories =
-            new List<CustomCategoryInput>();
-
-
-        for (int column = 0;
-             column < 6;
-             column++)
-        {
-            string categoryName =
-                _categoryEntries[column]
-                    .Text?
-                    .Trim()
-                ?? string.Empty;
-
-
-            if (string.IsNullOrWhiteSpace(
-                categoryName))
-            {
-                await DisplayAlertAsync(
-                    "Missing Information",
-                    "Please enter all 6 category names.",
-                    "OK");
-
-                return null;
-            }
-
-
-            var clues =
-                new List<(string, string)>();
-
-
-            for (int row = 0;
-                 row < 5;
-                 row++)
-            {
-                if (!_filled[column, row])
-                {
-                    await DisplayAlertAsync(
-                        "Incomplete Board",
-                        "Please complete all 30 questions and answers before saving.",
-                        "OK");
-
-                    return null;
-                }
-
-
-                clues.Add((
-                    _questions[column, row],
-                    _answers[column, row]
-                ));
-            }
-
-
-            categories.Add(
-                new CustomCategoryInput
-                {
-                    CategoryName =
-                        categoryName,
-
-                    Clues =
-                        clues
-                });
-        }
-
-
-        return categories;
-    }
-
-
     // ============================================================
     // SAVE BOARD
     // ============================================================
 
     private async Task<int?> SaveBoardAsync()
     {
-        List<CustomCategoryInput>? categories =
-            await BuildCategoriesFromBoardAsync();
-
-
-        if (categories == null)
-            return null;
-
-
         try
         {
-            // ====================================================
-            // EDIT MODE
-            // ====================================================
-
-            if (_editingGameId.HasValue)
+            for (int column = 0; column < 6; column++)
             {
-                await _dbService.UpdatePlayerAuthoredGameAsync(
-                    _editingGameId.Value,
-                    "Custom Game",
-                    categories,
-                    startingPointValue: 100,
-                    pointIncrement: 100);
+                string categoryName =
+                    _categoryEntries[column]
+                        .Text?
+                        .Trim()
+                    ?? string.Empty;
 
-
-                return _editingGameId.Value;
+                _viewModel.SetCategoryName(column, categoryName);
             }
 
-
-            // ====================================================
-            // CREATE MODE
-            // ====================================================
-
-            int gameId =
-                await _dbService.BuildPlayerAuthoredGameAsync(
-                    "Custom Game",
-                    categories,
-                    startingPointValue: 100,
-                    pointIncrement: 100);
-
-
-            return gameId;
+            return await _viewModel.SaveBoardAsync();
         }
         catch (Exception ex)
         {
@@ -649,7 +414,6 @@ public partial class NewBoardPage : ContentPage
                 "Save Failed",
                 ex.Message,
                 "OK");
-
 
             return null;
         }
@@ -719,6 +483,7 @@ public partial class NewBoardPage : ContentPage
         await Navigation.PushAsync(
             new PlayerSetupPage(
                 _dbService,
+                new PlayerSetupViewModel(_dbService, new PlayerSetupService()),
                 gameId.Value));
     }
 }
