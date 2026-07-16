@@ -57,7 +57,7 @@ public partial class PlayerSetupPage : ContentPage {
     private async void LoadDefaultBoardName() {
         // NOTE: Please check if GetAllGamesAsync() is the correct name 
         // in your GameDatabaseService. Change it if you use a different name.
-        await _viewModel.LoadDefaultBoardNameAsync();
+        await _viewModel.LoadDefaultBoardNameAsync(_gameId);
 
         BoardNameEntry.Text = _viewModel.BoardName;
     }
@@ -191,6 +191,7 @@ public partial class PlayerSetupPage : ContentPage {
                 players,
                 _gameId,
                 _viewModel.TimerSeconds,
-                boardName));
+                boardName,
+                new GameTimerService()));
     }
 }

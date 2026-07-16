@@ -31,8 +31,20 @@ public class PlayerSetupViewModel : BaseViewModel
         set => SetProperty(ref _boardName, value);
     }
 
-    public async Task LoadDefaultBoardNameAsync()
+    public async Task LoadDefaultBoardNameAsync(int? gameIdToEdit = null)
     {
+        // If editing an existing game, load its actual name
+        if (gameIdToEdit.HasValue)
+        {
+            var game = await _dbService.GetGameWithDetailsAsync(gameIdToEdit.Value);
+            if (game != null)
+            {
+                BoardName = game.Name;
+                return;
+            }
+        }
+
+        // Otherwise, generate a default name for a new game
         var allGames = await _dbService.GetAllGamesAsync();
         int gameCount = allGames?.Count ?? 0;
 

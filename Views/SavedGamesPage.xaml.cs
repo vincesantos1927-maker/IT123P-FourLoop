@@ -118,19 +118,6 @@ public partial class SavedGamesPage : ContentPage
         };
 
 
-        // GAME INFO
-
-        Label dateLabel = new()
-        {
-            // Temporary until we add/use a CreatedAt property in GameDb.
-            Text = "Date created unavailable",
-
-            FontSize = 14,
-
-            TextColor = Color.FromArgb("#D7B53C")
-        };
-
-
         string categoryPreview = game.CategoryPreview;
 
         Label categoriesLabel = new()
@@ -334,8 +321,6 @@ public partial class SavedGamesPage : ContentPage
             Children =
     {
         titleLabel,
-
-        dateLabel,
 
         categoriesLabel,
 
