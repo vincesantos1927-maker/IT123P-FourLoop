@@ -36,38 +36,40 @@ public class GameBoardViewModel : BaseViewModel
         //notify ui that categories are chosen so it can build the game now
         OnPropertyChanged(nameof(Categories));
     }
-    //whenever 
+    //whenever a player clicks a clue it opens the clue view and resets the active buzzer
     public void SelectClue(ClueDb clue)
     {
         CurrentClue = clue;
-        ActivePlayerIndex = null;
+        ActivePlayerIndex = null;//no one is buzzed yet for the fresh clue
         OnPropertyChanged(nameof(CurrentClue));
         OnPropertyChanged(nameof(ActivePlayerIndex));
     }
-
+    //locks a player when they hit their button
     public void BuzzIn(int playerIndex)
     {
+        //prevents buzzing if someone else is buzzed or theres no question active
         if (CurrentClue == null || ActivePlayerIndex != null)
             return;
 
         ActivePlayerIndex = playerIndex;
         OnPropertyChanged(nameof(ActivePlayerIndex));
     }
-
+    //skips current question, marks it as completed
     public async Task SkipCurrentClueAsync()
     {
         if (CurrentClue == null)
             return;
-
+        //marks as finished and save state to serevr
         CurrentClue.IsCompleted = true;
         await _dbService.UpdateClueStateAsync(CurrentClue);
-
+        //reset state back to board view
         CurrentClue = null;
         ActivePlayerIndex = null;
 
         OnPropertyChanged(nameof(CurrentClue));
         OnPropertyChanged(nameof(ActivePlayerIndex));
     }
+    //deducts player buzzed when time runs out
     public async Task ApplyTimeoutPenaltyAsync()
     {
         if (CurrentClue == null || ActivePlayerIndex == null)
@@ -75,15 +77,15 @@ public class GameBoardViewModel : BaseViewModel
 
         Player player = Players[ActivePlayerIndex.Value];
         player.Score -= CurrentClue.PointValue;
-
+        //records as last person to make a move
         LastPickerIndex = ActivePlayerIndex;
-
+        //marks it as done
         CurrentClue.IsCompleted = true;
         await _dbService.UpdateClueStateAsync(CurrentClue);
 
         OnPropertyChanged(nameof(LastPickerIndex));
     }
-
+    //closes out the question after final decision has been made
     public async Task FinishCurrentClueAsync()
     {
         if (CurrentClue == null)
@@ -101,26 +103,27 @@ public class GameBoardViewModel : BaseViewModel
         OnPropertyChanged(nameof(ActivePlayerIndex));
         OnPropertyChanged(nameof(LastPickerIndex));
     }
-
+    //checks if active player's answer is correct or not,
+    //adjusts their score, saves clue state, and returns to board view
     public async Task ResolveCurrentClueAsync(bool isCorrect)
     {
         if (CurrentClue == null)
             return;
-
+        //cant deduct points if theres no active player
         if (ActivePlayerIndex == null)
             throw new InvalidOperationException("A player needs to buzz in before scoring this clue.");
 
         Player player = Players[ActivePlayerIndex.Value];
-
+        //add points if correct, opposite if not
         player.Score += isCorrect
             ? CurrentClue.PointValue
             : -CurrentClue.PointValue;
-
+        //track who made a move
         LastPickerIndex = ActivePlayerIndex;
-
+        //mark clue as completed in the db
         CurrentClue.IsCompleted = true;
         await _dbService.UpdateClueStateAsync(CurrentClue);
-
+        //reset active clue state
         CurrentClue = null;
         ActivePlayerIndex = null;
 
@@ -128,18 +131,18 @@ public class GameBoardViewModel : BaseViewModel
         OnPropertyChanged(nameof(ActivePlayerIndex));
         OnPropertyChanged(nameof(LastPickerIndex));
     }
-
+    //checks if game is over by checking every clue on the board
     public bool IsGameComplete()
     {
         return Categories != null &&
                Categories.SelectMany(category => category.Clues).All(clue => clue.IsCompleted);
     }
-
+    //returns list of players from highest to lowest
     public List<Player> GetRankedPlayers()
     {
         return Players.OrderByDescending(player => player.Score).ToList();
     }
-
+    //converts scores into currencies
     public static string FormatScore(int score)
     {
         return score < 0 ? $"-${Math.Abs(score)}" : $"${score}";

@@ -41,3 +41,14 @@ public class ClueUpdateRequest // used by both modes when updating a clue
     public int PointValue { get; set; }
     public bool IsCompleted { get; set; }
 }
+public class PlayerResultDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int Score { get; set; }
+}
+
+public class RecordGameResultsRequest
+{
+    public string GameName { get; set; } = "Custom Game";
+    public List<PlayerResultDto> Players { get; set; } = new();
+}

@@ -44,3 +44,14 @@ public class ClueDb
     public int PointValue { get; set; }
     public bool IsCompleted { get; set; }
 }
+public class GameResultDb
+{
+    [Key]
+    public int Id { get; set; }
+
+    public string PlayerName { get; set; } = string.Empty;
+    public int Score { get; set; }
+    public bool IsWinner { get; set; }
+    public string GameName { get; set; } = string.Empty;
+    public DateTime PlayedAt { get; set; } = DateTime.UtcNow;
+}

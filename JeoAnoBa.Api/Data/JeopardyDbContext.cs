@@ -11,6 +11,7 @@ public class JeopardyDbContext : DbContext
     public DbSet<GameDb> Games => Set<GameDb>();
     public DbSet<CategoryDb> Categories => Set<CategoryDb>();
     public DbSet<ClueDb> Clues => Set<ClueDb>();
+    public DbSet<GameResultDb> GameResults => Set<GameResultDb>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
