@@ -17,6 +17,7 @@ public class CategorySelectorPopup : Popup {
     private readonly Button _continueButton;
     private readonly CollectionView _collectionView;
     private readonly SearchBar _searchBar;
+    private readonly Services.SfxService _sfxService = IPlatformApplication.Current!.Services.GetRequiredService<Services.SfxService>();
 
     // App theme colors
     private static readonly Color NavyUnselected = Color.FromArgb("#1E3A5F");
@@ -40,7 +41,11 @@ public class CategorySelectorPopup : Popup {
             Padding = 0,
             FontSize = 16
         };
-        closeButton.Clicked += (s, e) => Close(null);
+        closeButton.Clicked += (s, e) => {
+        _sfxService.PlayClick();
+        Close(null);
+
+        };
 
         var titleLabel = new Label {
             Text = "Pick Categories",
@@ -148,6 +153,8 @@ public class CategorySelectorPopup : Popup {
                 // Handle category selection
                 var tapGesture = new TapGestureRecognizer();
                 tapGesture.Tapped += (s, e) => {
+                    _sfxService.PlayClick();
+
                     if (pillBorder.BindingContext is CategoryDb category)
                         ToggleCategory(category, pillBorder, checkCircle);
                 };
@@ -244,6 +251,7 @@ public class CategorySelectorPopup : Popup {
 
     // Return selected categories
     private void OnGenerateClicked(object? sender, EventArgs e) {
+        _sfxService.PlayClick();
         if (_selectedCategories.Count == 6) {
             FinalSelection = _selectedCategories.Select(c => c.Name).ToList();
             Close(FinalSelection);
