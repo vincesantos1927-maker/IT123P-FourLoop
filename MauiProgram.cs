@@ -17,8 +17,8 @@ namespace jeo_ano_ba
             // API CONFIGURATION
             // ============================================
             string baseAddress = DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2:60451/"   // android emulator 
-                : "http://localhost:60451/"; // windows / iOS 
+                ? "http://10.0.2.2:5050/"   // android emulator 
+                : "http://localhost:5050/"; // windows / iOS 
 
             // register the shared HttpClient 
             builder.Services.AddSingleton(new HttpClient

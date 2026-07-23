@@ -50,3 +50,15 @@ public class JeopardyClueSeed
     public string? Value { get; set; }
     public string? Answer { get; set; }
 }
+
+public class PlayerResultDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int Score { get; set; }
+}
+
+public class RecordGameResultsRequest
+{
+    public string GameName { get; set; } = "Custom Game";
+    public List<PlayerResultDto> Players { get; set; } = new();
+}

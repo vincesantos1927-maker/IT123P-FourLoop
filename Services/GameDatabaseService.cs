@@ -159,4 +159,24 @@ public class GameDatabaseService
 
         response.EnsureSuccessStatusCode();
     }
+    // records the final scores of a finished game so they show up on the Hall of Fame leaderboard
+    public async Task RecordGameResultsAsync(string gameName, List<Player> players)
+    {
+        var request = new RecordGameResultsRequest
+        {
+            GameName = string.IsNullOrWhiteSpace(gameName) ? "Custom Game" : gameName,
+            Players = players.Select(p => new PlayerResultDto { Name = p.Name, Score = p.Score }).ToList()
+        };
+
+        var response = await _httpClient.PostAsJsonAsync("api/results", request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    // gets the top N highest scores ever recorded, across every game played
+    public async Task<List<GameResultDb>> GetLeaderboardAsync(int take = 10)
+    {
+        var response = await _httpClient.GetAsync($"api/results/leaderboard?take={take}");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<GameResultDb>>() ?? new List<GameResultDb>();
+    }
 }

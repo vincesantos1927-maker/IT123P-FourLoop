@@ -77,3 +77,12 @@ public class JeopardyClue // used to deserialize the API response
     [JsonPropertyName("show_number")]
     public string ShowNumber { get; set; }
 }
+public class GameResultDb
+{
+    public int Id { get; set; }
+    public string PlayerName { get; set; } = string.Empty;
+    public int Score { get; set; }
+    public bool IsWinner { get; set; }
+    public string GameName { get; set; } = string.Empty;
+    public DateTime PlayedAt { get; set; }
+}

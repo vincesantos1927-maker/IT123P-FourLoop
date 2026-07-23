@@ -15,6 +15,7 @@ public class JeopardyDbContext : DbContext
     public DbSet<GameDb> Games => Set<GameDb>();
     public DbSet<CategoryDb> Categories => Set<CategoryDb>();
     public DbSet<ClueDb> Clues => Set<ClueDb>();
+    public DbSet<GameResultDb> GameResults => Set<GameResultDb>();
 
     // Explicitly configures relationships between tables, instead of relying entirely on EF Core's inference
     protected override void OnModelCreating(ModelBuilder modelBuilder)
