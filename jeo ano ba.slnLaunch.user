@@ -4,11 +4,13 @@
     "Projects": [
       {
         "Path": "jeo ano ba.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "Windows Machine"
       },
       {
         "Path": "JeoAnoBa.Api\\JeoAnoBa.Api.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "JeoAnoBa.Api"
       }
     ]
   }

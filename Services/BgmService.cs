@@ -6,16 +6,20 @@ namespace jeo_ano_ba.Services {
         private const string BgmFileName = "BgmEnabled";
         //for playing the bgm
         private readonly IAudioManager _audioManager;
+        private readonly SfxService _sfxService;
         private IAudioPlayer? _player;
         
         //constructor for the BgmService, takes in an IAudioManager to manage audio playback
-        public BgmService(IAudioManager audioManager) {
+        public BgmService(IAudioManager audioManager, SfxService sfxService) {
             _audioManager = audioManager;
+            _sfxService = sfxService;
         }
         //gets whether the bgm is enabled or not, by checking the Preferences for the BgmFileName key, defaulting to true if not found
         public bool IsEnabled => Preferences.Get(BgmFileName, true);
 
         public void SetEnabled(bool enabled) {
+            _sfxService.PlayClick();
+
             //saves the setting to the Preferences, and plays or pauses the music based on the enabled state
             Preferences.Set(BgmFileName, enabled);
 

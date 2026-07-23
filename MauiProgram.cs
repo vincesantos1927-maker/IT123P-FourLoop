@@ -4,6 +4,7 @@ using jeo_ano_ba.Services;
 using jeo_ano_ba.Views;
 using CommunityToolkit.Maui;
 using jeo_ano_ba.ViewModels;
+using Microsoft.Maui.Handlers;
 
 namespace jeo_ano_ba
 {
@@ -52,6 +53,7 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<PlayerSetupService>();
             builder.Services.AddTransient<SavedGamesService>();
             builder.Services.AddTransient<GameTimerService>();
+            builder.Services.AddSingleton<SfxService>();
 
             // ============================================
             // VIEW MODELS
@@ -70,6 +72,33 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<NewBoardPage>();
             builder.Services.AddTransient<PlayerSetupPage>();
 
+            // ============================================
+            // GLOBAL BUTTON CLICK SOUND
+            // ============================================
+            var buttonPlayer = AudioManager.Current.CreatePlayer(
+            FileSystem.OpenAppPackageFileAsync("click.mp3").GetAwaiter().GetResult());
+            ButtonHandler.Mapper.AppendToMapping("GlobalClickSound", (handler, view) =>
+            {
+                if (view is Button button)
+                {
+                    button.Clicked += (s, e) =>
+                    {
+                        buttonPlayer.Seek(0);
+                        buttonPlayer.Play();
+                    };
+                }
+            });
+            ImageButtonHandler.Mapper.AppendToMapping("GlobalClickSoundImg", (handler, view) =>
+            {
+                if (view is ImageButton imgButton)
+                {
+                    imgButton.Clicked += (s, e) =>
+                    {
+                        buttonPlayer?.Seek(0);
+                        buttonPlayer?.Play();
+                    };
+                }
+            });
             return builder.Build();
         }
     }

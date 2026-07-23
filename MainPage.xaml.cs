@@ -14,6 +14,7 @@ public partial class MainPage : ContentPage {
     private int? _autoLoadGameId;
     private readonly GameTimerService _timerService; // timerservice for the countdown
     private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>(); // bgm in bgmservice 
+    private readonly SfxService _sfxService = IPlatformApplication.Current!.Services.GetRequiredService<SfxService>();
     private readonly string _boardName;
 
     // colors of players are reused in buzzers, scoreboard, and leaderboards
@@ -162,7 +163,10 @@ public partial class MainPage : ContentPage {
         if (_viewModel.CurrentClue == null) return;
         if (_viewModel.ActivePlayerIndex != null) return;
 
+        _sfxService.PlayBuzzer();
+
         _timerService.Stop();
+        _sfxService.StopTicking();
         _viewModel.BuzzIn(index);
 
         MainThread.BeginInvokeOnMainThread(() => {
@@ -184,6 +188,7 @@ public partial class MainPage : ContentPage {
             }
         });
 
+        _sfxService.PlayTicking();
         await _timerService.StartAsync(_viewModel.TimerSeconds);
     }
 
@@ -363,6 +368,7 @@ public partial class MainPage : ContentPage {
             TimerBar.IsVisible = false;
             TimerLabel.Text = "";
             _timerService.Stop();
+            _sfxService.StopTicking();
             EvaluationModal.IsVisible = true;
             ResetBuzzers();
         }
@@ -373,6 +379,7 @@ public partial class MainPage : ContentPage {
         if (_viewModel.CurrentClue == null) return;
 
         _timerService.Stop();
+        _sfxService.StopTicking();
         TimerLabel.IsVisible = false;
         TimerBar.IsVisible = false;
 
@@ -395,6 +402,7 @@ public partial class MainPage : ContentPage {
         if (_viewModel.ActivePlayerIndex != null) return;
 
         _timerService.Stop();
+        _sfxService.StopTicking();
         await _viewModel.SkipCurrentClueAsync();
 
         EvaluationModal.IsVisible = false;
@@ -405,11 +413,13 @@ public partial class MainPage : ContentPage {
 
     // marks answer as correct
     private async void OnCorrectClicked(object sender, EventArgs e) {
+        _sfxService.PlayCorrect();
         await ResolveClueAsync(isCorrect: true);
     }
 
     // marks answer as incorrect
     private async void OnIncorrectClicked(object sender, EventArgs e) {
+        _sfxService.PlayWrong();
         await ResolveClueAsync(isCorrect: false);
     }
 
@@ -465,6 +475,9 @@ public partial class MainPage : ContentPage {
             return;
 
         // apply timeout penalty to the active player
+        _sfxService.StopTicking();
+        _sfxService.PlayWrong();
+
         string answer = _viewModel.CurrentClue.Answer;
         await _viewModel.ApplyTimeoutPenaltyAsync();
 

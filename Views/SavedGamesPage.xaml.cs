@@ -7,14 +7,16 @@ namespace jeo_ano_ba.Views;
 
 public partial class SavedGamesPage : ContentPage {
     private readonly GameDatabaseService _dbService;
+    private readonly SfxService _sfxService;
     private readonly SavedGamesViewModel _viewModel;
 
     private bool _isLoading;
 
-    public SavedGamesPage(GameDatabaseService dbService) {
+    public SavedGamesPage(GameDatabaseService dbService, SfxService sfxService) {
         InitializeComponent();
 
         _dbService = dbService;
+        _sfxService = sfxService;
         _viewModel = new SavedGamesViewModel(new SavedGamesService(dbService));
 
         BindingContext = _viewModel;
@@ -111,9 +113,11 @@ public partial class SavedGamesPage : ContentPage {
         // Edit → go to NewBoardPage in edit mode for this game
         TapGestureRecognizer editTap = new();
         editTap.Tapped += async (_, _) => {
+            _sfxService.PlayClick();
             await Navigation.PushAsync(
                 new NewBoardPage(
                     _dbService,
+                    _sfxService,
                     game.Id));
         };
         editLabel.GestureRecognizers.Add(editTap);
@@ -121,9 +125,11 @@ public partial class SavedGamesPage : ContentPage {
         // Play → go straight to player setup for this game
         TapGestureRecognizer playTap = new();
         playTap.Tapped += async (_, _) => {
+            _sfxService.PlayClick();
             await Navigation.PushAsync(
                 new PlayerSetupPage(
                     _dbService,
+                    _sfxService,
                     new PlayerSetupViewModel(_dbService, new PlayerSetupService()),
                     game.Id));
         };
@@ -132,6 +138,8 @@ public partial class SavedGamesPage : ContentPage {
         // Delete → confirm, then remove from DB and refresh the list
         TapGestureRecognizer deleteTap = new();
         deleteTap.Tapped += async (_, _) => {
+            _sfxService.PlayClick();
+
             bool confirmed =
                 await DisplayAlertAsync(
                     "Delete Game",
@@ -210,6 +218,7 @@ public partial class SavedGamesPage : ContentPage {
     private async void CloseTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         await Navigation.PopAsync();
     }
 
@@ -217,6 +226,7 @@ public partial class SavedGamesPage : ContentPage {
     private async void CreateTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         await CreateButton.ScaleToAsync(
             0.90,
             70,
@@ -228,6 +238,6 @@ public partial class SavedGamesPage : ContentPage {
             Easing.SpringOut);
 
         await Navigation.PushAsync(
-            new NewBoardPage(_dbService));
+            new NewBoardPage(_dbService, _sfxService));
     }
 }

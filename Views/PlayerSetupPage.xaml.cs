@@ -8,6 +8,7 @@ namespace jeo_ano_ba.Views;
 public partial class PlayerSetupPage : ContentPage {
     private readonly GameDatabaseService _dbService;
     private readonly int _gameId;
+    private readonly SfxService _sfxService;
     private readonly PlayerSetupViewModel _viewModel;
 
     private readonly List<Entry> _playerEntries = new();
@@ -21,10 +22,11 @@ public partial class PlayerSetupPage : ContentPage {
         Color.FromArgb("#BA68C8")  // Purple
     };
 
-    public PlayerSetupPage(GameDatabaseService dbService, PlayerSetupViewModel viewModel, int gameId) {
+    public PlayerSetupPage(GameDatabaseService dbService, SfxService sfxService, PlayerSetupViewModel viewModel, int gameId) {
         InitializeComponent();
 
         _dbService = dbService;
+        _sfxService = sfxService;
         _gameId = gameId;
 
         _viewModel = viewModel;
@@ -116,30 +118,37 @@ public partial class PlayerSetupPage : ContentPage {
 
     // Player count stepper — actual clamping/limits live in the ViewModel
     private void PlayerMinusTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         _viewModel.DecreasePlayerCount();
     }
 
     private void PlayerPlusTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         _viewModel.IncreasePlayerCount();
     }
 
     // Timer stepper — actual clamping/limits live in the ViewModel
     private void TimerMinusTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         _viewModel.DecreaseTimer();
     }
 
     private void TimerPlusTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         _viewModel.IncreaseTimer();
     }
 
     // Leaves without starting the game
     private async void CloseTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         await Navigation.PopAsync();
     }
 
     // Validates board name, fills in default names for blank player entries,
     // then starts the game with the configured players/timer/board
     private async void StartGameTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
+
         string boardName = BoardNameEntry.Text?.Trim();
 
         if (string.IsNullOrWhiteSpace(boardName)) {

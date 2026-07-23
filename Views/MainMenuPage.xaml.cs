@@ -7,14 +7,17 @@ namespace jeo_ano_ba.Views;
 public partial class MainMenuPage : ContentPage {
     private readonly GameDatabaseService _dbService;
     private readonly MainMenuViewModel _viewModel;
-
+    private readonly SfxService _sfxService;
     // Services/ViewModel are injected via DI
     public MainMenuPage(
     GameDatabaseService dbService,
-    MainMenuViewModel viewModel) {
+    MainMenuViewModel viewModel, 
+    SfxService sfxService)
+    {
         InitializeComponent();
         _dbService = dbService;
         _viewModel = viewModel;
+        _sfxService = sfxService;
         BindingContext = _viewModel;
 
         // Listen for ViewModel changes (e.g. music toggled elsewhere)
@@ -56,13 +59,15 @@ public partial class MainMenuPage : ContentPage {
 
     // "Custom Game" tapped — animate, then go to saved games list
     private async void CustomGameTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         await AnimateButton(CustomGameButton);
         await Navigation.PushAsync(
-            new SavedGamesPage(_dbService));
+            new SavedGamesPage(_dbService, _sfxService));
     }
 
     // "Preset Categories" tapped — pick categories, build the game, then move to player setup
     private async void GeneralKnowledgeTapped(object sender, TappedEventArgs e) {
+        _sfxService.PlayClick();
         await AnimateButton(GeneralKnowledgeButton);
 
         var categories = await _viewModel.GetAvailableCategoriesAsync();
@@ -83,7 +88,7 @@ public partial class MainMenuPage : ContentPage {
             return;
 
         int gameId = await _viewModel.BuildGeneralKnowledgeGameAsync(chosenCategories);
-        await Navigation.PushAsync(new PlayerSetupPage(_dbService, new PlayerSetupViewModel(_dbService, new PlayerSetupService()), gameId));
+        await Navigation.PushAsync(new PlayerSetupPage(_dbService, _sfxService, new PlayerSetupViewModel(_dbService, new PlayerSetupService()), gameId));
     }
 
     // Music icon tapped — bounce animation, then flip music on/off

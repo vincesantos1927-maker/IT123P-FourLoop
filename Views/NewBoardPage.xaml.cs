@@ -7,6 +7,7 @@ namespace jeo_ano_ba.Views;
 
 public partial class NewBoardPage : ContentPage {
     private readonly GameDatabaseService _dbService;
+    private readonly SfxService _sfxService;
 
     // Null = creating a new board, has value = editing an existing saved board
     private readonly int? _editingGameId;
@@ -23,12 +24,13 @@ public partial class NewBoardPage : ContentPage {
     private readonly Label[,] _cellLabels = new Label[6, 5];
 
     // Create mode: fresh empty board
-    public NewBoardPage(GameDatabaseService dbService) {
+    public NewBoardPage(GameDatabaseService dbService, SfxService sfxService) {
         InitializeComponent();
 
         _dbService = dbService;
         _editingGameId = null;
         _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
+        _sfxService = sfxService;
         BindingContext = _viewModel;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         BuildBoard();
@@ -37,10 +39,12 @@ public partial class NewBoardPage : ContentPage {
     // Edit mode: loads an existing saved board after the page appears
     public NewBoardPage(
     GameDatabaseService dbService,
+    SfxService sfxService,
     int gameId) {
         InitializeComponent();
 
         _dbService = dbService;
+        _sfxService = sfxService;
         _editingGameId = gameId;
         _viewModel = new NewBoardViewModel(_dbService, _editingGameId);
         BindingContext = _viewModel;
@@ -154,6 +158,7 @@ public partial class NewBoardPage : ContentPage {
                 var tap = new TapGestureRecognizer();
 
                 tap.Tapped += (sender, args) => {
+                    _sfxService.PlayClick();
                     // Deselect the previously selected tile (reset its border)
                     if (_selectedTile != null) {
                         _selectedTile.StrokeThickness = 1;
@@ -231,6 +236,7 @@ public partial class NewBoardPage : ContentPage {
     private void ClosePopupTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         PopupOverlay.IsVisible = false;
 
         if (_selectedTile != null) {
@@ -244,6 +250,8 @@ public partial class NewBoardPage : ContentPage {
     private async void SaveQuestionTapped(
     object sender,
     TappedEventArgs e) {
+        _sfxService.PlayClick();
+
         string question = QuestionEditor.Text?.Trim() ?? string.Empty;
         string answer = AnswerEntry.Text?.Trim() ?? string.Empty;
 
@@ -302,6 +310,7 @@ public partial class NewBoardPage : ContentPage {
     private async void CloseTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         await Navigation.PopAsync();
     }
 
@@ -309,6 +318,7 @@ public partial class NewBoardPage : ContentPage {
     private async void SaveOnlyTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         int? gameId = await SaveBoardAsync();
 
         if (gameId == null)
@@ -330,6 +340,7 @@ public partial class NewBoardPage : ContentPage {
     private async void SaveStartTapped(
         object sender,
         TappedEventArgs e) {
+        _sfxService.PlayClick();
         int? gameId = await SaveBoardAsync();
 
         if (gameId == null)
@@ -338,6 +349,7 @@ public partial class NewBoardPage : ContentPage {
         await Navigation.PushAsync(
             new PlayerSetupPage(
                 _dbService,
+                _sfxService,
                 new PlayerSetupViewModel(_dbService, new PlayerSetupService()),
                 gameId.Value));
     }
