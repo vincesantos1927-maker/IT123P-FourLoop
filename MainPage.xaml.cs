@@ -499,10 +499,23 @@ public partial class MainPage : ContentPage {
     // ---
 
     // checks if the game is complete and shows the game over scoreboard if it is
-    private void CheckGameComplete()
+    private async void CheckGameComplete()
     {
-        if (_viewModel.IsGameComplete())
-            ShowGameOverScoreboard();
+        if (!_viewModel.IsGameComplete())
+            return;
+
+        try
+        {
+            await _dbService.RecordGameResultsAsync(
+                string.IsNullOrWhiteSpace(_boardName) ? "Custom Game" : _boardName,
+                _viewModel.Players);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Unable to save leaderboard:\n{ex.Message}", "OK");
+        }
+
+        ShowGameOverScoreboard();
     }
 
     // returns the color associated with a player based on their index in the player list

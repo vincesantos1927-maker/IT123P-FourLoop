@@ -63,6 +63,7 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<PlayerSetupViewModel>();
             builder.Services.AddTransient<NewBoardViewModel>();
             builder.Services.AddTransient<GameBoardViewModel>();
+            builder.Services.AddTransient<WinnersViewModel>();
 
             // ============================================
             // PAGES
@@ -71,6 +72,7 @@ namespace jeo_ano_ba
             builder.Services.AddTransient<SavedGamesPage>();
             builder.Services.AddTransient<NewBoardPage>();
             builder.Services.AddTransient<PlayerSetupPage>();
+            builder.Services.AddTransient<WinnersPage>();
 
             // ============================================
             // GLOBAL BUTTON CLICK SOUND

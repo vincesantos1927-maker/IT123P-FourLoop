@@ -3,6 +3,7 @@ using System;
 using JeoAnoBa.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JeoAnoBa.Api.Migrations
 {
     [DbContext(typeof(JeopardyDbContext))]
-    partial class JeopardyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723144233_AddGameResults")]
+    partial class AddGameResults
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");

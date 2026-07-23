@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui;
 using CommunityToolkit.Maui.Views;
 using jeo_ano_ba.Services;
 using jeo_ano_ba.ViewModels;
@@ -103,4 +105,13 @@ public partial class MainMenuPage : ContentPage {
             Easing.SpringOut);
         _viewModel.ToggleMusic();
     }
+
+        private async void LeaderboardTapped(object sender, TappedEventArgs e)
+        {
+            var winnersPage = IPlatformApplication.Current!
+                .Services
+                .GetRequiredService<WinnersPage>();
+
+            await Navigation.PushAsync(winnersPage);
+        }
 }
