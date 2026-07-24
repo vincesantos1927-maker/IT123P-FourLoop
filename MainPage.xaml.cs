@@ -9,12 +9,13 @@ namespace jeo_ano_ba;
 public partial class MainPage : ContentPage {
     private readonly GameDatabaseService _dbService; // talks to the database for the categories, clues, and saved games
     private readonly GameBoardViewModel _viewModel; // lets the VM remember the current state of a game 
-    private readonly List<Button> _buzzButtons = new(); 
-    private readonly List<(Border chip, Label label)> _scoreLabels = new();
+    private readonly List<(Border card, Label nameLabel)> _buzzButtons = new();
+    private readonly List<(Border chip, Label nameLabel, Label scoreLabel)> _scoreLabels = new();
     private int? _autoLoadGameId;
     private readonly GameTimerService _timerService; // timerservice for the countdown
-    private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>(); // bgm in bgmservice 
+    private readonly BgmService _bgmService = IPlatformApplication.Current!.Services.GetRequiredService<BgmService>();
     private readonly SfxService _sfxService = IPlatformApplication.Current!.Services.GetRequiredService<SfxService>();
+
     private readonly string _boardName;
 
     // colors of players are reused in buzzers, scoreboard, and leaderboards
@@ -77,82 +78,181 @@ public partial class MainPage : ContentPage {
     private static string FormatScore(int score) => GameBoardViewModel.FormatScore(score);
 
     // this builds the score footer that shows each player's name and score in a colored card
-    private Grid BuildScoreFooter() { 
-        _scoreLabels.Clear(); // clears score labels every time the method runs
+    private Grid BuildScoreFooter()
+    {
+        _scoreLabels.Clear();
 
-        // container that holds the player score cards
-        var bar = new Grid {
+        var bar = new Grid
+        {
             Padding = new Thickness(10),
             ColumnSpacing = 8,
             BackgroundColor = Color.FromArgb("#0F0F2D")
         };
 
-        // creates one column for each player
         for (int i = 0; i < _viewModel.Players.Count; i++)
             bar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-        // iterates per player
-        for (int i = 0; i < _viewModel.Players.Count; i++) {
-            var player = _viewModel.Players[i]; 
-            string color = PlayerColors[i % PlayerColors.Length];
+        for (int i = 0; i < _viewModel.Players.Count; i++)
+        {
+            var player = _viewModel.Players[i];
+            Color color = GetPlayerColor(player, i);
+            bool hasPhoto = !string.IsNullOrEmpty(player.PhotoPath);
 
-            // creates the colored score card
-            var chip = new Border {
-                BackgroundColor = Color.FromArgb(color),
-                Padding = new Thickness(6),
-                HeightRequest = 50,
-                StrokeShape = new RoundRectangle { CornerRadius = 12 }
-            };
-
-            // text inside the card
-            var label = new Label {
-                Text = $"{player.Name}\n{FormatScore(player.Score)}",
+            var nameLabel = new Label
+            {
+                Text = player.Name,
                 TextColor = Colors.White,
                 FontAttributes = FontAttributes.Bold,
-                FontSize = 12,
-                HorizontalTextAlignment = TextAlignment.Center,
-                VerticalTextAlignment = TextAlignment.Center
+                FontSize = 14,
+                HorizontalOptions = LayoutOptions.Center,
+                HorizontalTextAlignment = TextAlignment.Center
             };
-            chip.Content = label; // puts label inside the border
 
-            _scoreLabels.Add((chip, label));
+            var scoreLabel = new Label
+            {
+                Text = FormatScore(player.Score),
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 14,
+                HorizontalOptions = LayoutOptions.Center,
+                HorizontalTextAlignment = TextAlignment.Center
+            };
+
+            // Photo mode needs a shadow so the text stays readable over any image;
+            // color mode doesn't need it since it always sits on a flat, controlled background
+            if (hasPhoto)
+            {
+                var textShadow = new Shadow { Brush = Colors.Black, Radius = 8, Offset = new Point(0, 1), Opacity = 0.85f };
+                nameLabel.Shadow = textShadow;
+                scoreLabel.Shadow = textShadow;
+            }
+
+            var nameScoreStack = new VerticalStackLayout
+            {
+                Spacing = 0,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                Children = { nameLabel, scoreLabel }
+            };
+
+            View chipContent;
+            Color chipColor;
+
+            if (hasPhoto)
+            {
+                // Photo fills the ENTIRE chip as a background, not a small icon beside the name
+                var photoImage = new Image
+                {
+                    Aspect = Aspect.AspectFill,
+                    Source = ImageSource.FromFile(player.PhotoPath)
+                };
+
+                chipContent = new Grid { Children = { photoImage, nameScoreStack } };
+                chipColor = Colors.Black; // fallback only if the image somehow fails to load
+            }
+            else
+            {
+                // Pure color mode: no avatar/initial icon at all, just the chip color + name + score
+                chipContent = nameScoreStack;
+                chipColor = color;
+            }
+
+            var chip = new Border
+            {
+                BackgroundColor = chipColor,
+                Padding = hasPhoto ? new Thickness(0) : new Thickness(10, 6),
+                HeightRequest = 60,
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                Content = chipContent
+            };
+
+            _scoreLabels.Add((chip, nameLabel, scoreLabel));
             Grid.SetColumn(chip, i);
             bar.Add(chip, i, 0);
         }
 
         return bar;
     }
-
     // this builds the buzz-in grid that shows each player's buzzer button
-    private void BuildBuzzInGrid() {
-        _buzzButtons.Clear(); // clears the list of buzz buttons every time the method runs
+    private void BuildBuzzInGrid()
+    {
+        _buzzButtons.Clear();
         BuzzInGrid.Children.Clear();
 
-        // creates columns for the buzz-in grid
-        for (int i = 0; i < _viewModel.Players.Count; i++) {
+        for (int i = 0; i < _viewModel.Players.Count; i++)
+        {
             var player = _viewModel.Players[i];
-            string color = PlayerColors[i % PlayerColors.Length];
+            Color color = GetPlayerColor(player, i);
 
-            var button = new Button {
-                Text = player.Name,
-                BackgroundColor = Color.FromArgb(color),
-                TextColor = Colors.White,
-                FontAttributes = FontAttributes.Bold,
-                FontSize = 20,
-                CornerRadius = 20,
-                HeightRequest = 110
+            Label nameLabel;
+            View cardContent;
+
+            if (!string.IsNullOrEmpty(player.PhotoPath))
+            {
+                // Photo fills the ENTIRE button (center-cropped, not stretched) —
+                // not a small icon sitting on top of a colored card.
+                var photoImage = new Image
+                {
+                    Aspect = Aspect.AspectFill,
+                    Source = ImageSource.FromFile(player.PhotoPath)
+                };
+
+                nameLabel = new Label
+                {
+                    Text = player.Name,
+                    TextColor = Colors.White,
+                    FontAttributes = FontAttributes.Bold,
+                    FontSize = 22,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    Shadow = new Shadow
+                    {
+                        Brush = Colors.Black,
+                        Radius = 8,
+                        Offset = new Point(0, 2),
+                        Opacity = 0.85f
+                    }
+                };
+
+                cardContent = new Grid { Children = { photoImage, nameLabel } };
+            }
+            else
+            {
+                // Card background already IS the color — no separate colored circle needed on top of it.
+                nameLabel = new Label
+                {
+                    Text = player.Name,
+                    TextColor = Colors.White,
+                    FontAttributes = FontAttributes.Bold,
+                    FontSize = 22,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalOptions = LayoutOptions.Center
+                };
+
+                cardContent = nameLabel;
+            }
+
+            var card = new Border
+            {
+                BackgroundColor = color,
+                StrokeShape = new RoundRectangle { CornerRadius = 20 },
+                HeightRequest = 110,
+                Content = cardContent
             };
 
             int capturedIndex = i;
-            button.Clicked += (s, e) => OnPlayerBuzzed(capturedIndex);
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (s, e) => OnPlayerBuzzed(capturedIndex);
+            card.GestureRecognizers.Add(tap);
 
-            _buzzButtons.Add(button);
+            _buzzButtons.Add((card, nameLabel));
 
             int row = i / 2;
             int col = i % 2;
-            Grid.SetRow(button, row);
-            Grid.SetColumn(button, col);
-            BuzzInGrid.Children.Add(button);
+            Grid.SetRow(card, row);
+            Grid.SetColumn(card, col);
+            BuzzInGrid.Children.Add(card);
         }
     }
 
@@ -182,10 +282,14 @@ public partial class MainPage : ContentPage {
             for (int i = 0; i < _buzzButtons.Count; i++)
             {
                 bool isActive = i == index;
-                _buzzButtons[i].Opacity = isActive ? 1.0 : 0.3;
-                _buzzButtons[i].IsEnabled = false;
-                _buzzButtons[i].Text = isActive ? $"{_viewModel.Players[i].Name}\nAnswering..." : _viewModel.Players[i].Name;
+                _buzzButtons[i].card.Opacity = isActive ? 1.0 : 0.3;
+                _buzzButtons[i].card.IsEnabled = false;
+                _buzzButtons[i].nameLabel.Text = isActive ? $"{_viewModel.Players[i].Name}\nAnswering..." : _viewModel.Players[i].Name;
+
+                _scoreLabels[i].chip.StrokeThickness = isActive ? 3 : 0;
+                _scoreLabels[i].chip.Stroke = isActive ? Colors.White : Colors.Transparent;
             }
+
         });
 
         _sfxService.PlayTicking();
@@ -267,18 +371,27 @@ public partial class MainPage : ContentPage {
         WhoKnowsLabel.IsVisible = true;
 
         // resets the buzzers to their initial state
-        for (int i = 0; i < _buzzButtons.Count; i++) {
-            _buzzButtons[i].IsEnabled = true;
-            _buzzButtons[i].Opacity = 1.0;
-            _buzzButtons[i].Text = _viewModel.Players[i].Name;
+        for (int i = 0; i < _buzzButtons.Count; i++)
+        {
+            _buzzButtons[i].card.IsEnabled = true;
+            _buzzButtons[i].card.Opacity = 1.0;
+            _buzzButtons[i].nameLabel.Text = _viewModel.Players[i].Name;
         }
 
         // updates the score labels to reflect the current scores and highlights the last player who picked a clue
-        for (int i = 0; i < _scoreLabels.Count; i++) {
-            _scoreLabels[i].label.Text = $"{_viewModel.Players[i].Name}\n{GameBoardViewModel.FormatScore(_viewModel.Players[i].Score)}";
-            _scoreLabels[i].chip.StrokeThickness = (_viewModel.LastPickerIndex.HasValue && i == _viewModel.LastPickerIndex.Value) ? 3 : 0;
-            _scoreLabels[i].chip.Stroke = Colors.White;
+        for (int i = 0; i < _scoreLabels.Count; i++)
+        {
+            var player = _viewModel.Players[i];
+            var (chip, nameLabel, scoreLabel) = _scoreLabels[i];
+
+            // Keep name as-is, only update score
+            nameLabel.Text = player.Name;
+            scoreLabel.Text = FormatScore(player.Score);
+
+            chip.StrokeThickness = (_viewModel.LastPickerIndex.HasValue && i == _viewModel.LastPickerIndex.Value) ? 3 : 0;
+            chip.Stroke = chip.StrokeThickness > 0 ? Colors.White : Colors.Transparent;
         }
+
 
         SkipButton.IsVisible = true;
     }
@@ -392,7 +505,7 @@ public partial class MainPage : ContentPage {
         if (_viewModel.ActivePlayerIndex.HasValue)
         {
             int index = _viewModel.ActivePlayerIndex.Value;
-            _buzzButtons[index].Text = _viewModel.Players[index].Name;
+            _buzzButtons[index].nameLabel.Text = _viewModel.Players[index].Name;
         }
     }
 
@@ -518,71 +631,96 @@ public partial class MainPage : ContentPage {
         ShowGameOverScoreboard();
     }
 
-    // returns the color associated with a player based on their index in the player list
-    private Color GetPlayerColor(Player player) {
+    // prefers whatever color the player chose during setup; falls back to the positional
+    // default so games with no AvatarColor set (e.g. before this feature existed) still work
+    private static Color GetPlayerColor(Player player, int index) =>
+        player.AvatarColor ?? Color.FromArgb(PlayerColors[index % PlayerColors.Length]);
+
+    private Color GetPlayerColor(Player player)
+    {
         int idx = _viewModel.Players.IndexOf(player);
         if (idx < 0) idx = 0;
-        return Color.FromArgb(PlayerColors[idx % PlayerColors.Length]);
+        return GetPlayerColor(player, idx);
     }
-
 
     // displays the game over scoreboard with the winner and ranked players
-    private void ShowGameOverScoreboard() {
-        var ranked = _viewModel.GetRankedPlayers();
-        if (ranked.Count == 0) return;
+    private void ShowGameOverScoreboard()
+    {
+        {
+            var ranked = _viewModel.GetRankedPlayers();
+            if (ranked.Count == 0) return;
 
-        BoardEndContentHost.Children.Clear();
-        WinnerCardHost.Children.Clear();
+            BoardEndContentHost.Children.Clear();
+            WinnerCardHost.Children.Clear();
 
-        var winner = ranked[0];
+            var winner = ranked[0];
 
-        // Winner spotlight card
-        WinnerCardHost.Children.Add(new Label {
-            Text = "👑",
-            FontSize = 28,
-            HorizontalTextAlignment = TextAlignment.Center
-        });
-        WinnerCardHost.Children.Add(new Label {
-            Text = winner.Name,
-            TextColor = Colors.White,
-            FontAttributes = FontAttributes.Bold,
-            FontSize = 26,
-            HorizontalTextAlignment = TextAlignment.Center
-        });
-        WinnerCardHost.Children.Add(new Label {
-            Text = FormatScore(winner.Score),
-            TextColor = Color.FromArgb("#FFFFFF"),
-            FontAttributes = FontAttributes.Bold,
-            FontSize = 28,
-            HorizontalTextAlignment = TextAlignment.Center
-        });
-        WinnerCardHost.Children.Add(new Label {
-            Text = "WINNER!",
-            TextColor = Color.FromArgb("#FFFFFF"),
-            FontSize = 13,
-            FontAttributes = FontAttributes.Bold,
-            CharacterSpacing = 1,
-            HorizontalTextAlignment = TextAlignment.Center
-        });
+            // 👑 Crown
+            WinnerCardHost.Children.Add(new Label
+            {
+                Text = "👑",
+                FontSize = 44,
+                HorizontalTextAlignment = TextAlignment.Center
+            });
 
-        // Remaining players, ranked #2 onward
-        for (int i = 1; i < ranked.Count; i++) {
-            BoardEndContentHost.Children.Add(BuildRankRow(i + 1, ranked[i]));
+            // 🖼️ Winner photo below crown
+            var winnerAvatar = BuildAvatarView(winner, 80);
+            winnerAvatar.HorizontalOptions = LayoutOptions.Center;
+            WinnerCardHost.Children.Add(winnerAvatar);
+
+            // 🏆 Winner name and score
+            WinnerCardHost.Children.Add(new Label
+            {
+                Text = winner.Name,
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 26,
+                HorizontalTextAlignment = TextAlignment.Center
+            });
+            WinnerCardHost.Children.Add(new Label
+            {
+                Text = FormatScore(winner.Score),
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 28,
+                HorizontalTextAlignment = TextAlignment.Center
+            });
+            WinnerCardHost.Children.Add(new Label
+            {
+                Text = "WINNER!",
+                TextColor = Colors.White,
+                FontSize = 13,
+                FontAttributes = FontAttributes.Bold,
+                CharacterSpacing = 1,
+                HorizontalTextAlignment = TextAlignment.Center
+            });
+
+            // Remaining players (ranked #2 onward)
+            for (int i = 1; i < ranked.Count; i++)
+            {
+                BoardEndContentHost.Children.Add(BuildRankRow(i + 1, ranked[i]));
+            }
+
+            BoardEndModal.IsVisible = true;
         }
-
-        BoardEndModal.IsVisible = true;
     }
-
-
     // builds a single row in the game over scoreboard showing the player's rank, name, and score
-    private Border BuildRankRow(int rank, Player player) {
-        var row = new Grid {
-            ColumnDefinitions = { new(30), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) },
+    private Border BuildRankRow(int rank, Player player)
+    {
+        var row = new Grid
+        {
+            ColumnDefinitions = {
+            new(30),          // rank #
+            new(40),          // avatar
+            new(GridLength.Star), // name
+            new(GridLength.Auto)  // score
+        },
             ColumnSpacing = 12,
             Padding = new Thickness(6, 0)
         };
 
-        var rankLabel = new Label {
+        var rankLabel = new Label
+        {
             Text = rank.ToString(),
             TextColor = Color.FromArgb("#4C6587"),
             FontAttributes = FontAttributes.Bold,
@@ -590,23 +728,19 @@ public partial class MainPage : ContentPage {
             VerticalOptions = LayoutOptions.Center
         };
 
-        var colorCircle = new Border {
-            WidthRequest = 32,
-            HeightRequest = 32,
-            BackgroundColor = GetPlayerColor(player),
-            StrokeThickness = 0,
-            VerticalOptions = LayoutOptions.Center,
-            StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(16) }
-        };
+        var avatarImage = BuildAvatarView(player, 40);
+        avatarImage.HorizontalOptions = LayoutOptions.Center;
 
-        var nameLabel = new Label {
+        var nameLabel = new Label
+        {
             Text = player.Name,
             TextColor = Colors.White,
             FontSize = 17,
             VerticalOptions = LayoutOptions.Center
         };
 
-        var scoreLabel = new Label {
+        var scoreLabel = new Label
+        {
             Text = FormatScore(player.Score),
             TextColor = Colors.White,
             FontAttributes = FontAttributes.Bold,
@@ -615,15 +749,17 @@ public partial class MainPage : ContentPage {
         };
 
         Grid.SetColumn(rankLabel, 0);
-        Grid.SetColumn(colorCircle, 1);
+        Grid.SetColumn(avatarImage, 1);
         Grid.SetColumn(nameLabel, 2);
         Grid.SetColumn(scoreLabel, 3);
+
         row.Children.Add(rankLabel);
-        row.Children.Add(colorCircle);
+        row.Children.Add(avatarImage);
         row.Children.Add(nameLabel);
         row.Children.Add(scoreLabel);
 
-        return new Border {
+        return new Border
+        {
             BackgroundColor = Color.FromArgb("#13294B"),
             StrokeThickness = 0,
             Padding = new Thickness(14, 12),
@@ -632,10 +768,51 @@ public partial class MainPage : ContentPage {
         };
     }
 
-
     // handles the event when the "Back to Menu" button is clicked, hides the game over modal, and navigates back to the main menu
     private async void OnBoardEndActionClicked(object sender, EventArgs e) {
         BoardEndModal.IsVisible = false;
         await Navigation.PopToRootAsync();
+    }
+    // Builds a circular avatar: the player's photo (center-cropped) if they picked one,
+    // otherwise a solid color circle with their initial — never depends on a default image file
+    private View BuildAvatarView(Player player, double size)
+    {
+        if (!string.IsNullOrEmpty(player.PhotoPath))
+        {
+            return new Border
+            {
+                WidthRequest = size,
+                HeightRequest = size,
+                StrokeThickness = 0,
+                StrokeShape = new RoundRectangle { CornerRadius = size / 2 },
+                Content = new Image
+                {
+                    Aspect = Aspect.AspectFill,
+                    Source = ImageSource.FromFile(player.PhotoPath)
+                }
+            };
+        }
+
+        Color avatarColor = player.AvatarColor ?? GetPlayerColor(player);
+
+        return new Border
+        {
+            WidthRequest = size,
+            HeightRequest = size,
+            BackgroundColor = avatarColor,
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = size / 2 },
+            Content = new Label
+            {
+                Text = string.IsNullOrEmpty(player.Name) ? "?" : player.Name.Substring(0, 1).ToUpper(),
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = size * 0.4,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalTextAlignment = TextAlignment.Center
+            }
+        };
     }
 }
