@@ -312,7 +312,7 @@ public partial class PlayerSetupPage : ContentPage
         _sfxService.PlayClick();
 
         string action = await DisplayActionSheet(
-            "Profile Picture", "Cancel", null, "Take Photo", "Choose from Gallery", "Use a Color Instead");
+            "Player Appearance", "Cancel", null, "Take Photo", "Choose from Gallery", "Use a Color Instead");
 
         if (action == "Use a Color Instead")
         {
