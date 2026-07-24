@@ -60,7 +60,7 @@
                         Text="View Leaderboards"
                         FontSize="14"
                         FontAttributes="Bold"
-                        TextColor="#FFD700"
+                        TextColor="White"
                         HorizontalOptions="Center"
                         VerticalOptions="Center"
                         HorizontalTextAlignment="Center"/>

@@ -9,11 +9,13 @@ namespace jeo_ano_ba.Views;
 public partial class WinnersPage : ContentPage
 {
     private readonly WinnersViewModel _viewModel;
+    private readonly SfxService _sfxService;
 
-    public WinnersPage(WinnersViewModel viewModel)
+    public WinnersPage(WinnersViewModel viewModel, SfxService sfxService)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _sfxService = sfxService;
 
         LoadLeaderboard();
     }
@@ -63,6 +65,7 @@ public partial class WinnersPage : ContentPage
 
     private async void HomeTapped(object sender, TappedEventArgs e)
     {
+        _sfxService.PlayClick();
         await Navigation.PopAsync();
     }
 }

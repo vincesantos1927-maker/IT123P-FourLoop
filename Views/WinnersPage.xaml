@@ -91,7 +91,9 @@
                             <Border
                         WidthRequest="72"
                         HeightRequest="72"
-                        BackgroundColor="#C9CED6">
+                        BackgroundColor="#C9CED6"
+                        Stroke="White"
+                        StrokeThickness="2">
 
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="36"/>
@@ -150,13 +152,20 @@
                             <Border
                         WidthRequest="92"
                         HeightRequest="92"
-                        BackgroundColor="#FFD700"
-                        Stroke="White"
-                        StrokeThickness="2">
-
+                        BackgroundColor="#FFD700">
+                                
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="46"/>
                                 </Border.StrokeShape>
+
+                                <Border.Shadow>
+                                    <Shadow
+                                    Brush="#FFD700"
+                                    Radius="22"
+                                    Offset="0,10"
+                                    Opacity="0.45"/>
+                                </Border.Shadow>
+
 
                                 <Label
                             Text="👑"
@@ -212,7 +221,9 @@
                             <Border
                         WidthRequest="72"
                         HeightRequest="72"
-                        BackgroundColor="#C88652">
+                        BackgroundColor="#C88652"
+                        Stroke="White"
+                        StrokeThickness="2">
 
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="36"/>

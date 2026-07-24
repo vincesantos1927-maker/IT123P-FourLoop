@@ -108,6 +108,7 @@ public partial class MainMenuPage : ContentPage {
 
         private async void LeaderboardTapped(object sender, TappedEventArgs e)
         {
+            _sfxService.PlayClick();
             var winnersPage = IPlatformApplication.Current!
                 .Services
                 .GetRequiredService<WinnersPage>();
